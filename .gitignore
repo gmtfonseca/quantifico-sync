@@ -1,0 +1,5 @@
+upload/*
+.vscode
+*.ipynb
+*.XML
+.ipynb_checkpoints
