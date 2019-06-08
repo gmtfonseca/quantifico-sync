@@ -2,15 +2,15 @@ import os
 from pathlib import Path
 
 
-class FileUtil:
+class ArquivoUtil:
     @staticmethod
-    def baseName(path):
+    def nomeBase(path):
         if not path:
             return ""
         return Path(path).stem
 
     @staticmethod
-    def lastModifDate(path):
+    def dataUltimaModificacao(path):
         if not path:
             return ""
         return os.path.getmtime(path)
