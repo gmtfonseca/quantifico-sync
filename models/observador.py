@@ -3,10 +3,10 @@ import time
 
 class Observador:
 
-    def __init__(self, handler, pastaCliente, pastaServidor, delay=60.0):
+    def __init__(self, handler, cliente, servidor, delay=60.0):
         self.handler = handler
-        self.pastaCliente = pastaCliente
-        self.pastaServidor = pastaServidor
+        self.cliente = cliente
+        self.servidor = servidor
         self.delay = delay
 
     def observar(self):
@@ -15,19 +15,24 @@ class Observador:
             time.sleep(self.delay - time.time() % self.delay)
 
     def controlaMudancas(self):
-        self.pastaCliente.atualizar()
-        self.pastaServidor.atualizar()
+        self.cliente.atualizar()
 
         insercoes = self.insercoes()
         delecoes = self.delecoes()
 
         if len(delecoes) > 0:
-            self.handler.onDelecao(delecoes)
+            print('delecoes')
+            self.handler.onDelecao(self.servidor, delecoes)
         elif len(insercoes) > 0:
-            self.handler.onInsercao(self.pastaCliente.getPath(), insercoes)
+            print('insercao')
+            self.handler.onInsercao(self.cliente, self.servidor, insercoes)
 
     def insercoes(self):
-        return self.pastaCliente.getEstado() - self.pastaServidor.getEstado()
+        '''print('Estado cliente')
+        print(self.cliente.getEstado())
+        print('Estado servidor')
+        print(self.servidor.getEstado())'''
+        return self.cliente.getEstado() - self.servidor.getEstado()
 
     def delecoes(self):
-        return self.pastaServidor.getEstado() - self.pastaCliente.getEstado()
+        return self.servidor.getEstado() - self.cliente.getEstado()

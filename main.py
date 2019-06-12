@@ -5,13 +5,13 @@ import os
 
 NF_PATH = os.path.abspath('nf')
 PICKLE_PATH = os.path.abspath('serverstate.file')
-DELAY = 15.0
+DELAY = 5.0
 
 
 def init():
-    estadoCliente = Cliente(NF_PATH)
-    estadoServidor = Servidor(PICKLE_PATH)
-    observador = Observador(NfHandler(), estadoCliente, estadoServidor, DELAY)
+    cliente = Cliente(NF_PATH)
+    servidor = Servidor(PICKLE_PATH)
+    observador = Observador(NfHandler(), cliente, servidor, DELAY)
     observador.observar()
 
 

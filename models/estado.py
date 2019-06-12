@@ -2,6 +2,7 @@ import glob
 from .arquivo import Arquivo
 from lib.util import ArquivoUtil
 import pickle
+import os
 
 
 class Cliente:
@@ -28,14 +29,26 @@ class Servidor:
 
     def __init__(self, path):
         self.path = path
-        self.estado = set()
+        self.carregaEstado()
 
-    def atualizar(self):
-        with open(self.path, "rb") as f:
-            self.estado = pickle.load(f)
+    def carregaEstado(self):
+        if not os.path.isfile(self.path):
+            with open(self.path, 'wb') as file:
+                self.estado = set()
+                pickle.dump(self.estado, file, pickle.HIGHEST_PROTOCOL)
+        else:
+            self.estado = pickle.load(open(self.path, "rb"))
+
+    def setEstado(self, estado):
+        self.estado = set(estado)
+        self.serializaEstado()
 
     def getEstado(self):
         return self.estado
+
+    def serializaEstado(self):
+        with open(self.path, "wb") as file:
+            pickle.dump(self.estado, file, pickle.HIGHEST_PROTOCOL)
 
     def getPath(self):
         return self.path

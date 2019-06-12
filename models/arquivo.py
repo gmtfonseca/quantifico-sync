@@ -1,22 +1,19 @@
-import json
-
-
 class Arquivo:
 
-    def __init__(self, nome, dataUltimaModificacao, conteudo={}):
+    def __init__(self, nome, dataModificacao, conteudo={}):
         self.nome = nome
-        self.dataUltimaModificacao = dataUltimaModificacao
+        self.dataModificacao = dataModificacao
         self.conteudo = conteudo
 
     @classmethod
     def fromEstado(cls, estado):
-        nomeDataUltimaModificacao = estado.split('/')
-        nome = nomeDataUltimaModificacao[0]
-        dataUltimaModificacao = nomeDataUltimaModificacao[1]
-        return cls(nome, dataUltimaModificacao)
+        nomeDataModificacao = estado.split('/')
+        nome = nomeDataModificacao[0]
+        dataModificacao = nomeDataModificacao[1]
+        return cls(nome, dataModificacao)
 
     def getEstado(self):
-        return '{}/{}'.format(self.nome, self.dataUltimaModificacao)
+        return '{}/{}'.format(self.nome, self.dataModificacao)
 
-    def toJSON(self):
-        return json.dumps(vars(self))
+    def toDict(self):
+        return vars(self)
