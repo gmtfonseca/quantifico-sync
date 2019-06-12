@@ -16,7 +16,7 @@ class HttpService:
         response = requests.put(self.url + self.endpoint, json=json).json()
         return response
 
-    def stream(self, data, streamGen):
+    def stream(self, data, streamGenerator):
         response = requests.post(
-            self.url + self.endpoint, data=streamGen(data)).json()
+            self.url + self.endpoint, data=streamGenerator(data)).json()
         return response

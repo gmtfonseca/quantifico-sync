@@ -18,21 +18,17 @@ class Observador:
         self.cliente.atualizar()
 
         insercoes = self.insercoes()
-        delecoes = self.delecoes()
+        remocoes = self.remocoes()
 
-        if len(delecoes) > 0:
-            print('delecoes')
-            self.handler.onDelecao(self.servidor, delecoes)
+        if len(remocoes) > 0:
+            print('remocao')
+            self.handler.onRemocao(self.servidor, remocoes)
         elif len(insercoes) > 0:
             print('insercao')
             self.handler.onInsercao(self.cliente, self.servidor, insercoes)
 
     def insercoes(self):
-        '''print('Estado cliente')
-        print(self.cliente.getEstado())
-        print('Estado servidor')
-        print(self.servidor.getEstado())'''
         return self.cliente.getEstado() - self.servidor.getEstado()
 
-    def delecoes(self):
+    def remocoes(self):
         return self.servidor.getEstado() - self.cliente.getEstado()
