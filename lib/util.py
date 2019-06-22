@@ -10,7 +10,7 @@ class ArquivoUtil:
         return Path(path).stem
 
     @staticmethod
-    def dataUltimaModificacao(path):
+    def dataModificacaoSegundos(path):
         if not path:
             return ""
         return os.path.getmtime(path)

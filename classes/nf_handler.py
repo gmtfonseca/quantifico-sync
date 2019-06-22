@@ -1,6 +1,6 @@
 from lib.network import HttpService
-from models.arquivo import Arquivo
-from models.arquivo_queue import ArquivoQueue
+from classes.arquivo import Arquivo
+from classes.arquivo_queue import ArquivoQueue
 import json
 import xmltodict
 import os
@@ -8,7 +8,7 @@ import os
 
 class NfHandler():
     def __init__(self, batchSize=10):
-        self.httpService = HttpService('nfs')
+        self.httpService = HttpService('sync/nfs')
         self.arquivosRemovidosQueue = ArquivoQueue(batchSize)
         self.arquivosInseridosQueue = ArquivoQueue(batchSize)
 
@@ -26,9 +26,10 @@ class NfHandler():
     def processaArquivosInseridos(self, servidor):
         while not self.arquivosInseridosQueue.empty():
             batchArquivos = self.arquivosInseridosQueue.nextBatch()
-            response = self.httpService.stream(
+            estadoServidor = self.httpService.stream(
                 batchArquivos, self.streamGenerator)
-            self.atualizaEstadoServidor(response, servidor)
+            print(estadoServidor)
+            servidor.setEstado(estadoServidor)
 
     def onRemocao(self, servidor, remocoes):
         for r in remocoes:
@@ -41,12 +42,9 @@ class NfHandler():
     def processaArquivosRemovidos(self, servidor):
         while not self.arquivosRemovidosQueue.empty():
             batchArquivos = self.arquivosRemovidosQueue.nextBatch()
-            response = self.httpService.put({'arquivos': batchArquivos})
-            self.atualizaEstadoServidor(response, servidor)
-
-    def atualizaEstadoServidor(self, response, servidor):
-        print(response)
-        servidor.setEstado(response['estadoServidor'])
+            estadoServidor = self.httpService.put({'arquivos': batchArquivos})
+            print(estadoServidor)
+            servidor.setEstado(estadoServidor)
 
     def streamGenerator(self, arquivos):
         for arquivo in arquivos:

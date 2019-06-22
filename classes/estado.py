@@ -14,7 +14,7 @@ class Cliente:
     def atualizar(self):
         arquivosPath = glob.glob('{}/*.XML'.format(self.path))
         self.arquivos = {Arquivo(ArquivoUtil.nomeBase(a),
-                                 ArquivoUtil.dataUltimaModificacao(a))
+                                 ArquivoUtil.dataModificacaoSegundos(a))
                          for a in arquivosPath}
         return self.arquivos
 

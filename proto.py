@@ -88,5 +88,5 @@ def gen():
     # yield json.dumps(a, ensure_ascii=False)
 
 
-response = requests.post(url + 'nfs', data=gen()).json()
+response = requests.get(url + 'nfs').json()
 print(response)

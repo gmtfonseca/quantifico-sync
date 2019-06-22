@@ -17,8 +17,8 @@ class Observador:
     def controlaMudancas(self):
         self.cliente.atualizar()
 
-        insercoes = self.insercoes()
         remocoes = self.remocoes()
+        insercoes = self.insercoes()
 
         if len(remocoes) > 0:
             print('remocao')
