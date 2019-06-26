@@ -4,7 +4,7 @@ from classes.nf_handler import NfHandler
 import os
 
 NF_PATH = os.path.abspath('nf')
-PICKLE_PATH = os.path.abspath('serverstate.file')
+PICKLE_PATH = os.path.abspath('quantisync.dat')
 DELAY = 5.0
 
 

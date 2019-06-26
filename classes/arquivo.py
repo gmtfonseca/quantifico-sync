@@ -9,7 +9,7 @@ class Arquivo:
     def fromEstado(cls, estado):
         nomeDataModificacaoSegundos = estado.split('/')
         nome = nomeDataModificacaoSegundos[0]
-        dataModificacaoSegundos = nomeDataModificacaoSegundos[1]
+        dataModificacaoSegundos = float(nomeDataModificacaoSegundos[1])
         return cls(nome, dataModificacaoSegundos)
 
     def getEstado(self):

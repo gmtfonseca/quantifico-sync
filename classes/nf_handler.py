@@ -8,7 +8,7 @@ import os
 
 class NfHandler():
     def __init__(self, batchSize=10):
-        self.httpService = HttpService('sync/nfs')
+        self._httpService = HttpService('sync/nfs')
         self.arquivosRemovidosQueue = ArquivoQueue(batchSize)
         self.arquivosInseridosQueue = ArquivoQueue(batchSize)
 
@@ -21,31 +21,31 @@ class NfHandler():
             arquivo.conteudo = xmltodict.parse(xml)
             self.arquivosInseridosQueue.enqueue(arquivo.toDict())
 
-        self.processaArquivosInseridos(servidor)
+        self._processaArquivosInseridos(servidor)
 
-    def processaArquivosInseridos(self, servidor):
+    def _processaArquivosInseridos(self, servidor):
         while not self.arquivosInseridosQueue.empty():
             batchArquivos = self.arquivosInseridosQueue.nextBatch()
-            estadoServidor = self.httpService.stream(
-                batchArquivos, self.streamGenerator)
+            estadoServidor = self._httpService.stream(
+                batchArquivos, self._streamGenerator)
             print(estadoServidor)
             servidor.setEstado(estadoServidor)
 
     def onRemocao(self, servidor, remocoes):
         for r in remocoes:
             arquivo = Arquivo.fromEstado(r)
-            del arquivo.conteudo
-            self.arquivosRemovidosQueue.enqueue(arquivo.toDict())
+            self.arquivosRemovidosQueue.enqueue(arquivo.nome)
 
-        self.processaArquivosRemovidos(servidor)
+        self._processaArquivosRemovidos(servidor)
 
-    def processaArquivosRemovidos(self, servidor):
+    def _processaArquivosRemovidos(self, servidor):
         while not self.arquivosRemovidosQueue.empty():
             batchArquivos = self.arquivosRemovidosQueue.nextBatch()
-            estadoServidor = self.httpService.put({'arquivos': batchArquivos})
+            estadoServidor = self._httpService.delete(
+                {'arquivos': batchArquivos})
             print(estadoServidor)
             servidor.setEstado(estadoServidor)
 
-    def streamGenerator(self, arquivos):
+    def _streamGenerator(self, arquivos):
         for arquivo in arquivos:
             yield json.dumps(arquivo, ensure_ascii=False).encode()

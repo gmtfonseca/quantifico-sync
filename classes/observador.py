@@ -11,14 +11,14 @@ class Observador:
 
     def observar(self):
         while True:
-            self.controlaMudancas()
+            self.detectaMudancas()
             time.sleep(self.delay - time.time() % self.delay)
 
-    def controlaMudancas(self):
+    def detectaMudancas(self):
         self.cliente.atualizar()
 
-        remocoes = self.remocoes()
-        insercoes = self.insercoes()
+        remocoes = self._remocoes()
+        insercoes = self._insercoes()
 
         if len(remocoes) > 0:
             print('remocao')
@@ -27,8 +27,8 @@ class Observador:
             print('insercao')
             self.handler.onInsercao(self.cliente, self.servidor, insercoes)
 
-    def insercoes(self):
+    def _insercoes(self):
         return self.cliente.getEstado() - self.servidor.getEstado()
 
-    def remocoes(self):
+    def _remocoes(self):
         return self.servidor.getEstado() - self.cliente.getEstado()
