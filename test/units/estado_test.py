@@ -1,6 +1,6 @@
 import unittest
 import os
-from classes.estado import Cliente, Servidor
+from modules.estado import Cliente, Servidor
 
 
 class ClienteTest(unittest.TestCase):

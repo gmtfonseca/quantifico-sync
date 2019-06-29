@@ -1,5 +1,5 @@
 import unittest
-from classes.arquivo import Arquivo
+from modules.arquivo import Arquivo
 
 
 class ArquivoTest(unittest.TestCase):

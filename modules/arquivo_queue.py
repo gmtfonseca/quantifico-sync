@@ -8,6 +8,7 @@ class ArquivoQueue:
 
     def enqueue(self, arquivo):
         self.queue.put_nowait(arquivo)
+        return self
 
     def nextBatch(self):
         batch = []

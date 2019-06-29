@@ -1,5 +1,5 @@
 import unittest
-from classes.observador import Observador
+from modules.observador import Observador
 from unittest.mock import Mock
 
 
@@ -10,9 +10,7 @@ class ObservadorTest(unittest.TestCase):
         Testa se inserções são detectadas corretamente
         """
         servidorMock = Mock()
-        servidorMock.getEstado.return_value = {
-            '2859/1551545907.0',
-        }
+        servidorMock.getEstado.return_value = {'2859/1551545907.0'}
         clienteMock = Mock()
         clienteMock.getEstado.return_value = {
             '2859/1551545907.0',
@@ -31,12 +29,10 @@ class ObservadorTest(unittest.TestCase):
         servidorMock = Mock()
         servidorMock.getEstado.return_value = {
             '2859/1551545907.0',
-            '2865/1551545907.0',
+            '2865/1551545907.0'
         }
         clienteMock = Mock()
-        clienteMock.getEstado.return_value = {
-            '2859/1551545907.0'
-        }
+        clienteMock.getEstado.return_value = {'2859/1551545907.0'}
         mockHandler = Mock()
         observador = Observador(mockHandler, clienteMock, servidorMock)
         observador.detectaMudancas()
