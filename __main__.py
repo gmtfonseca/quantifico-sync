@@ -3,15 +3,20 @@ from classes.estado import Cliente, Servidor
 from classes.nf_handler import NfHandler
 from lib.network import HttpService
 import os
+import logging
 
-NF_PATH = os.path.abspath('nf')
+NF = {
+    'path': os.path.abspath('nf'),
+    'extensao': 'XML'
+}
 PICKLE_PATH = os.path.abspath('quantisync.dat')
 DELAY = 5.0
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     httpService = HttpService('sync/nfs')
-    cliente = Cliente(NF_PATH)
+    cliente = Cliente(NF['path'], NF['extensao'])
     servidor = Servidor(PICKLE_PATH)
     observador = Observador(NfHandler(httpService), cliente, servidor, DELAY)
     observador.observar()

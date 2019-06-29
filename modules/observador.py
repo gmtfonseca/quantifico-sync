@@ -1,7 +1,11 @@
 import time
+import logging
 
 
 class Observador:
+    """
+    Detecta e propaga mudanças de estado entre Cliente e Servidor
+    """
 
     def __init__(self, handler, cliente, servidor, delay=60.0):
         self.handler = handler
@@ -21,10 +25,10 @@ class Observador:
         insercoes = self._insercoes()
 
         if len(remocoes) > 0:
-            print('remocao')
+            logging.debug('remocao')
             self.handler.onRemocao(self.servidor, remocoes)
         elif len(insercoes) > 0:
-            print('insercao')
+            logging.debug('insercao')
             self.handler.onInsercao(self.cliente, self.servidor, insercoes)
 
     def _insercoes(self):

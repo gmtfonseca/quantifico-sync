@@ -1,5 +1,5 @@
 from .arquivo_queue import ArquivoQueue
-from .arquivo import Arquivo
+from .arquivo import PropriedadesArquivo, Nf
 from .nf_parser import NfParser, NfInvalida, XmlInvalido
 import json
 import os
@@ -26,11 +26,12 @@ class NfHandler():
 
         self._processaNfsInseridas(servidor)
 
-    def _setupNfInserida(self, estado, path):
-        arquivo = Arquivo.fromEstado(estado)
-        pathXml = os.path.join(path, '{}.XML'.format(arquivo.nome))
-        arquivo.conteudo = NfParser.parse(pathXml)
-        return arquivo
+    def _setupNfInserida(self, estado, clientePath):
+        propriedadesArquivo = PropriedadesArquivo.fromEstado(estado)
+        pathXml = os.path.join(clientePath, '{}.XML'.format(propriedadesArquivo.nome))
+        conteudoNf = NfParser.parse(pathXml)
+        nf = Nf(propriedadesArquivo, conteudoNf)
+        return nf
 
     def _processaNfsInseridas(self, servidor):
         while not self.nfsInseridasQueue.empty():
@@ -42,8 +43,8 @@ class NfHandler():
 
     def onRemocao(self, servidor, remocoes):
         for r in remocoes:
-            nfRemovida = Nf.fromEstado(r)
-            self.nfsRemovidasQueue.enqueue(nfRemovida.nome)
+            nomeArquivoNfRemovida = PropriedadesArquivo.fromEstado(r).nome
+            self.nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
 
         self._processaNfsRemovidas(servidor)
 
