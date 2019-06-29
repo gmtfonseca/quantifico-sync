@@ -19,16 +19,3 @@ class PropriedadesArquivo:
 
     def getEstado(self):
         return '{}/{}'.format(self.nome, self.dataModificacaoSegundos)
-
-
-class Nf:
-    """
-    Estrutura de dados que descreve uma Nota Fiscal
-    """
-
-    def __init__(self, propriedadesArquivo, conteudo):
-        self.propriedadesArquivo = propriedadesArquivo
-        self.conteudo = conteudo
-
-    def toDict(self):
-        return vars(self)
