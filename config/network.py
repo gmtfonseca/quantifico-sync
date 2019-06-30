@@ -1,7 +1,7 @@
 HTTP_CONFIG = {
     'url': 'http://localhost:3000/',
-    'batchSize': {
-        'insercao': 10,
-        'remocao': 20
+    'MAX_BATCH_SIZE': {
+        'STREAM': 10,
+        'DELETE': 20
     }
 }

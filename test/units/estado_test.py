@@ -10,8 +10,8 @@ class ClienteTest(unittest.TestCase):
         Testa se estado é iniciado corretamente
         """
         estadoCorreto = {
-            '2859/1551545907.0',
-            '2865/1551545907.0'
+            '2859/1561936295.8213189',
+            '2865/1561936295.8394666'
         }
         PATH = os.path.abspath('test/fixture/xml')
         EXTENSAO = 'XML'

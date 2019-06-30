@@ -1,6 +1,7 @@
 from requests.exceptions import HTTPError
 from modules.lib.network import HttpStreamQueue
 from modules.arquivo import PropriedadesArquivo
+from config.network import HTTP_CONFIG
 from .nf_parser import NfParser, XmlInvalido
 from .nf import Nf, NfInvalida
 import json
@@ -12,11 +13,11 @@ class NfInsercaoStrategy:
     Classe responsável pela lógica de inserção de Nf no Cliente"
     """
 
-    def __init__(self, httpService, batchSize, cliente, servidor):
+    def __init__(self, httpService, cliente, servidor):
         self._cliente = cliente
         self._servidor = servidor
         self._nfsInseridasQueue = HttpStreamQueue(httpService,
-                                                  batchSize,
+                                                  HTTP_CONFIG['MAX_BATCH_SIZE']['STREAM'],
                                                   self._streamGenerator)
 
     def onInsercao(self, insercoes):
