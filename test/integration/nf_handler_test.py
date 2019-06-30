@@ -22,7 +22,7 @@ class NfHandlerTest(unittest.TestCase):
     def tearDown(self):
         os.remove(self.servidor.getPath())
 
-    def testa_mudanca_estado_servidor_insercao(self):
+    def test_mudanca_estado_servidor_insercao(self):
         """
         Testa se estado servidor é atualizado corretamente após inserção
         """
@@ -36,7 +36,7 @@ class NfHandlerTest(unittest.TestCase):
         nfHandler.onInsercao(self.cliente, self.servidor, insercoes)
         self.assertEqual(self.servidor.getEstado(), insercoes)
 
-    def testa_mudanca_estado_servidor_remocao(self):
+    def test_mudanca_estado_servidor_remocao(self):
         """
         Testa se estado servidor é atualizado corretamente após remoçao
         """

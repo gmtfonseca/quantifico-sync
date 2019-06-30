@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 class ObservadorTest(unittest.TestCase):
 
-    def testa_deteccao_insercoes(self):
+    def test_deteccao_insercoes(self):
         """
         Testa se inserções são detectadas corretamente
         """
@@ -22,7 +22,7 @@ class ObservadorTest(unittest.TestCase):
         mockHandler.onInsercao.assert_called_with(
             clienteMock, servidorMock, {'2865/1551545907.0'})
 
-    def testa_deteccao_remocoes(self):
+    def test_deteccao_remocoes(self):
         """
         Testa se inserções são detectadas corretamente
         """

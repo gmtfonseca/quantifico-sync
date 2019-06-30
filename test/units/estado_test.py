@@ -5,7 +5,7 @@ from modules.estado import Cliente, Servidor
 
 class ClienteTest(unittest.TestCase):
 
-    def testa_inicializacao_estado(self):
+    def test_inicializacao_estado(self):
         """
         Testa se estado é iniciado corretamente
         """
@@ -23,7 +23,7 @@ class ClienteTest(unittest.TestCase):
 
 class ServidorTest(unittest.TestCase):
 
-    def testa_inicializacao_estado(self):
+    def test_inicializacao_estado(self):
         """
         Testa se estado é iniciado corretamente
         """

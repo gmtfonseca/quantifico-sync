@@ -10,21 +10,37 @@ class HttpService:
         self.endpoint = endpoint
 
     def post(self, json):
-        response = requests.post(self.url + self.endpoint, json=json).json()
-        return response
+        try:
+            response = requests.post(self.url + self.endpoint, json=json).json()
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError:
+            pass
 
     def put(self, json):
-        response = requests.put(self.url + self.endpoint, json=json).json()
-        return response
+        try:
+            response = requests.put(self.url + self.endpoint, json=json).json()
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError:
+            pass
 
     def delete(self, json):
-        response = requests.delete(self.url + self.endpoint, json=json).json()
-        return response
+        try:
+            response = requests.delete(self.url + self.endpoint, json=json).json()
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError:
+            pass
 
     def stream(self, data, streamGenerator):
-        response = requests.post(
-            self.url + self.endpoint, data=streamGenerator(data)).json()
-        return response
+        try:
+            response = requests.post(self.url + self.endpoint,
+                                     data=streamGenerator(data)).json()
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError:
+            pass
 
 
 class HttpRequestQueue:

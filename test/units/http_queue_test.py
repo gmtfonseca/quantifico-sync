@@ -7,7 +7,7 @@ BATCH_SIZE = 2
 
 class HttpRequestQueueTest(unittest.TestCase):
 
-    def testa_enqueue(self):
+    def test_enqueue(self):
         """
         Testa enqueue
         """
@@ -17,7 +17,7 @@ class HttpRequestQueueTest(unittest.TestCase):
         httpRequestQueue.enqueue(arquivo)
         self.assertTrue(httpRequestQueue.pending() == 1)
 
-    def testa_dequeue_pending(self):
+    def test_dequeue_pending(self):
         """
         Testa remoção de elemeto ao realizar dequeue
         """
@@ -35,7 +35,7 @@ class HttpRequestQueueTest(unittest.TestCase):
 
 class HttpDeleteQueueTest(unittest.TestCase):
 
-    def testa_post_batch_handler(self):
+    def test_post_batch_handler(self):
         """
         Testa chamada de handler após envio de batch
         """
@@ -54,7 +54,7 @@ class HttpDeleteQueueTest(unittest.TestCase):
 
 class HttpStreamQueueTest(unittest.TestCase):
 
-    def testa_post_batch_handler(self):
+    def test_post_batch_handler(self):
         """
         Testa chamada de handler após envio de batch
         """

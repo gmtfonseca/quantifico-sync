@@ -1,3 +1,4 @@
+from requests.exceptions import HTTPError
 from lib.network import HttpStreamQueue
 from modules.arquivo import PropriedadesArquivo
 from .nf_parser import NfParser, XmlInvalido
@@ -20,7 +21,7 @@ class NfInsercaoStrategy:
 
     def onInsercao(self, insercoes):
         self._enqueueNfsInseridas(insercoes)
-        self._nfsInseridasQueue.dequeue(self._postBatchHandler)
+        self._dequeueNfsInseridas()
 
     def _enqueueNfsInseridas(self, insercoes):
         for i in insercoes:
@@ -42,6 +43,12 @@ class NfInsercaoStrategy:
             print('XML Inválido')
         except NfInvalida:
             print('Nf Invalida')
+
+    def _dequeueNfsInseridas(self):
+        try:
+            self._nfsInseridasQueue.dequeue(self._postBatchHandler)
+        except HTTPError:
+            pass
 
     def _streamGenerator(self, nfs):
         for nf in nfs:
