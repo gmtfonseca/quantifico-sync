@@ -1,10 +1,14 @@
 import unittest
 import os
-from classes.nf_handler import NfHandler
-from classes.estado import Cliente, Servidor
+from modules.nf.nf_handler import NfHandler
+from modules.estado import Cliente, Servidor
 from unittest.mock import Mock
 
-NF_PATH = os.path.abspath('test/fixture/xml')
+NF = {
+    'PATH': os.path.abspath('test/fixture/xml'),
+    'EXTENSAO': 'XML'
+}
+
 PICKLE_PATH = os.path.abspath(
     'test/fixture/pickle/temp.dat')
 
@@ -12,7 +16,7 @@ PICKLE_PATH = os.path.abspath(
 class NfHandlerTest(unittest.TestCase):
 
     def setUp(self):
-        self.cliente = Cliente(NF_PATH)
+        self.cliente = Cliente(NF['PATH'], NF['EXTENSAO'])
         self.servidor = Servidor(PICKLE_PATH)
 
     def tearDown(self):

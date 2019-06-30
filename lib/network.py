@@ -28,9 +28,13 @@ class HttpService:
 
 
 class HttpRequestQueue:
-    def __init__(self, httpService, batch_size):
+    """
+    Estrutura de dados responável em realizar requisições HTTP em batches
+    """
+
+    def __init__(self, httpService, batchSize):
         self._httpService = httpService
-        self._batch_size = batch_size
+        self._batchSize = batchSize
         self._queue = Queue()
 
     def enqueue(self, arquivo):
@@ -44,15 +48,15 @@ class HttpRequestQueue:
         while not self._queue.empty():
             nextBatch = self._nextBatch()
             response = self._handleHttpRequest(nextBatch)
-            self.postBatchHandler(response)
+            postBatchHandler(response)
 
-    def _handleHttpRequest(self):
+    def _handleHttpRequest(self, batch):
         pass
 
     def _nextBatch(self):
         batch = []
         i = 0
-        while i < self.batch_size and not self.empty():
+        while i < self._batchSize and not self._queue.empty():
             batch.append(self._queue.get())
             i += 1
         return batch
@@ -62,8 +66,8 @@ class HttpRequestQueue:
 
 
 class HttpStreamQueue(HttpRequestQueue):
-    def __init__(self, httpService, batch_size, streamGenerator):
-        super().__init__(httpService, batch_size)
+    def __init__(self, httpService, batchSize, streamGenerator):
+        super().__init__(httpService, batchSize)
         self.streamGenerator = streamGenerator
 
     def _handleHttpRequest(self, batch):
@@ -71,8 +75,8 @@ class HttpStreamQueue(HttpRequestQueue):
 
 
 class HttpDeleteQueue(HttpRequestQueue):
-    def __init__(self, httpService, batch_size):
-        super().__init__(httpService, batch_size)
+    def __init__(self, httpService, batchSize):
+        super().__init__(httpService, batchSize)
 
     def _handleHttpRequest(self, batch):
         return self._httpService.delete(batch)

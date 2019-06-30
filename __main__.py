@@ -6,8 +6,8 @@ import os
 import logging
 
 NF = {
-    'path': os.path.abspath('nf'),
-    'extensao': 'XML'
+    'PATH': os.path.abspath('nf'),
+    'EXTENSAO': 'XML'
 }
 PICKLE_PATH = os.path.abspath('quantisync.dat')
 DELAY = 5.0
@@ -16,9 +16,10 @@ DELAY = 5.0
 def main():
     logging.basicConfig(level=logging.DEBUG)
     httpService = HttpService('sync/nfs')
-    cliente = Cliente(NF['path'], NF['extensao'])
+    cliente = Cliente(NF['PATH'], NF['EXTENSAO'])
     servidor = Servidor(PICKLE_PATH)
-    observador = Observador(NfHandler(httpService), cliente, servidor, DELAY)
+    nfHandler = NfHandler(httpService)
+    observador = Observador(nfHandler, cliente, servidor, DELAY)
     observador.observar()
 
 

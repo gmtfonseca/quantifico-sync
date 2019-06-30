@@ -1,13 +1,10 @@
 from xml.parsers.expat import ExpatError
+from .nf import NfInvalida
 import xmltodict
 
 
 class XmlInvalido(Exception):
     # TODO - Trocar de module
-    pass
-
-
-class NfInvalida(Exception):
     pass
 
 

@@ -19,7 +19,7 @@ class Observador:
             time.sleep(self.delay - time.time() % self.delay)
 
     def detectaMudancas(self):
-        self.cliente.atualizar()
+        self.cliente.carregaEstado()
 
         remocoes = self._remocoes()
         insercoes = self._insercoes()

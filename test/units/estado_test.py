@@ -13,9 +13,10 @@ class ClienteTest(unittest.TestCase):
             '2859/1551545907.0',
             '2865/1551545907.0'
         }
-        path = os.path.abspath('test/fixture/xml')
-        cliente = Cliente(path)
-        cliente.atualizar()
+        PATH = os.path.abspath('test/fixture/xml')
+        EXTENSAO = 'XML'
+        cliente = Cliente(PATH, EXTENSAO)
+        cliente.carregaEstado()
 
         self.assertEqual(cliente.getEstado(), estadoCorreto)
 

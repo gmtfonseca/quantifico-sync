@@ -1,3 +1,7 @@
+class NfInvalida(Exception):
+    pass
+
+
 class Nf:
     """
     Estrutura de dados que descreve uma Nota Fiscal

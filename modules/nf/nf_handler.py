@@ -1,15 +1,22 @@
+from config.network import HTTP_CONFIG
+# TODO - Desacoplar estratégias de handler
+from .nf_insercao_strategy import NfInsercaoStrategy
+from .nf_remocao_strategy import NfRemocaoStrategy
+
 
 class NfHandler():
-    def __init__(self, httpStreamQueue, httpDeleteQueue, NfInsercaoStrategy, NfRemocaoStrategy):
-        self._httpStreamQueue = httpStreamQueue
-        self._httpDeleteQueue = httpDeleteQueue
-        self._NfInsercaoStrategy = NfInsercaoStrategy
-        self._NfRemocaoStrategy = NfRemocaoStrategy
+    def __init__(self, httpService):
+        self._httpService = httpService
 
     def onInsercao(self, cliente, servidor, insercoes):
-        nfInsercaoStrategy = self.NfInsercaoStrategy(cliente, servidor, self._httpStreamQueue)
+        nfInsercaoStrategy = NfInsercaoStrategy(self._httpService,
+                                                HTTP_CONFIG['batchSize']['insercao'],
+                                                cliente,
+                                                servidor)
         nfInsercaoStrategy.onInsercao(insercoes)
 
     def onRemocao(self, servidor, remocoes):
-        nfRemocaoStrategy = self.NfRemocaoStrategy(servidor, self._httpDeleteQueue)
+        nfRemocaoStrategy = NfRemocaoStrategy(self._httpService,
+                                              HTTP_CONFIG['batchSize']['remocao'],
+                                              servidor)
         nfRemocaoStrategy.onRemocao(remocoes)

@@ -14,20 +14,27 @@ class Cliente:
 
     def __init__(self, path, extensao):
         self._path = path
-        self.atualizar()
+        self._extensao = extensao
+        self.carregaEstado()
 
-    def atualizar(self):
-        arquivosPath = glob.glob('{}/*.{}'.format(self._path, self.extensao))
-        self.propriedadesArquivos = {PropriedadesArquivo(ArquivoUtil.nomeBase(a),
-                                                         ArquivoUtil.dataModificacaoSegundos(a))
-                                     for a in arquivosPath}
-        return self.propriedadesArquivos
+    def carregaEstado(self):
+        arquivos = glob.glob('{}/*.{}'.format(self._path, self._extensao))
+        self._estado = {PropriedadesArquivo(ArquivoUtil.nomeBase(a),
+                                            ArquivoUtil.dataModificacaoSegundos(a)).getEstado()
+                        for a in arquivos}
+
+    def setExtensao(self, extensao):
+        self._extensao = extensao
+        self.carregaEstado()
 
     def getEstado(self):
-        return {p.getEstado() for p in self.propriedadesArquivos}
+        return self._estado
 
     def getPath(self):
         return self._path
+
+    def getExtensao(self):
+        return self._extensao
 
 
 class Servidor:
@@ -41,22 +48,25 @@ class Servidor:
 
     def carregaEstado(self):
         if not os.path.isfile(self._path):
-            with open(self._path, 'wb') as file:
-                self._estado = set()
-                pickle.dump(self.estado, file, pickle.HIGHEST_PROTOCOL)
-        else:
+            self._criaPickleVazio()
+        elif os.path.getsize(self._path) > 0:
             self._estado = pickle.load(open(self._path, "rb"))
+
+    def _criaPickleVazio(self):
+        with open(self._path, 'wb') as file:
+            self._estado = set()
+            pickle.dump(self._estado, file, pickle.HIGHEST_PROTOCOL)
 
     def setEstado(self, estado):
         self._estado = set(estado)
         self._serializaEstado()
 
-    def getEstado(self):
-        return self._estado
-
     def _serializaEstado(self):
         with open(self._path, "wb") as file:
             pickle.dump(self._estado, file, pickle.HIGHEST_PROTOCOL)
+
+    def getEstado(self):
+        return self._estado
 
     def getPath(self):
         return self._path
