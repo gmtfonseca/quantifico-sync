@@ -42,7 +42,7 @@ class HttpDeleteQueueTest(unittest.TestCase):
         httpResponseMock = {'mock/1111'}
         httpService = Mock()
         httpService.delete.return_value = httpResponseMock
-        httpDeleteQueue = HttpDeleteQueue(httpService, BATCH_SIZE)
+        httpDeleteQueue = HttpDeleteQueue(httpService)
         nf = Mock()
         httpDeleteQueue.enqueue(nf)
 
@@ -62,7 +62,7 @@ class HttpStreamQueueTest(unittest.TestCase):
         httpService = Mock()
         httpService.stream.return_value = httpResponseMock
         streamGenerator = Mock()
-        httpStreamQueue = HttpStreamQueue(httpService, BATCH_SIZE, streamGenerator)
+        httpStreamQueue = HttpStreamQueue(httpService, streamGenerator)
         nf = Mock()
         httpStreamQueue.enqueue(nf)
 

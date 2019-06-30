@@ -82,7 +82,7 @@ class HttpRequestQueue:
 
 
 class HttpStreamQueue(HttpRequestQueue):
-    def __init__(self, httpService, batchSize, streamGenerator):
+    def __init__(self, httpService, streamGenerator, batchSize=HTTP_CONFIG['MAX_BATCH_SIZE']['STREAM']):
         super().__init__(httpService, batchSize)
         self.streamGenerator = streamGenerator
 
@@ -91,7 +91,7 @@ class HttpStreamQueue(HttpRequestQueue):
 
 
 class HttpDeleteQueue(HttpRequestQueue):
-    def __init__(self, httpService, batchSize):
+    def __init__(self, httpService, batchSize=HTTP_CONFIG['MAX_BATCH_SIZE']['DELETE']):
         super().__init__(httpService, batchSize)
 
     def _handleHttpRequest(self, batch):

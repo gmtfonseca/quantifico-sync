@@ -1,4 +1,4 @@
-from config.network import HTTP_CONFIG
+from requests.exceptions import HTTPError
 from modules.lib.network import HttpDeleteQueue
 from modules.arquivo import PropriedadesArquivo
 
@@ -10,16 +10,22 @@ class NfRemocaoStrategy:
 
     def __init__(self, httpService, servidor):
         self._servidor = servidor
-        self.nfsRemovidasQueue = HttpDeleteQueue(httpService, HTTP_CONFIG['MAX_BATCH_SIZE']['DELETE'])
+        self._nfsRemovidasQueue = HttpDeleteQueue(httpService)
 
     def onRemocao(self, remocoes):
         self._enqueueNfsRemovidas(remocoes)
-        self.nfsRemovidasQueue.dequeue(self._postBatchHandler)
+        self._dequeueNfsRemovidas()
 
     def _enqueueNfsRemovidas(self, remocoes):
         for r in remocoes:
             nomeArquivoNfRemovida = PropriedadesArquivo.fromEstado(r).nome
-            self.nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
+            self._nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
+
+    def _dequeueNfsRemovidas(self):
+        try:
+            self._nfsRemovidasQueue.dequeue(self._postBatchHandler)
+        except HTTPError:
+            pass
 
     def _postBatchHandler(self, response):
         self._servidor.setEstado(response)
