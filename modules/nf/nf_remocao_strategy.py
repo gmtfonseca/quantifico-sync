@@ -1,4 +1,4 @@
-from lib.network import HttpDeleteQueue
+from modules.lib.network import HttpDeleteQueue
 from modules.arquivo import PropriedadesArquivo
 
 

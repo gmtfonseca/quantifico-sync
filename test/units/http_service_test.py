@@ -1,12 +1,12 @@
 import unittest
-from lib.network import HttpService
+from modules.lib.network import HttpService
 from requests.exceptions import HTTPError
 import mock
 
 
 class HttpServiceTest(unittest.TestCase):
 
-    @mock.patch('lib.network.requests.post')
+    @mock.patch('modules.lib.network.requests.post')
     def test_http_error_exception(self, mockRequestsPost):
         """
         Testa rota inválida

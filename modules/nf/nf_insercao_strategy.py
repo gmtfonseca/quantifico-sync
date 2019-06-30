@@ -1,5 +1,5 @@
 from requests.exceptions import HTTPError
-from lib.network import HttpStreamQueue
+from modules.lib.network import HttpStreamQueue
 from modules.arquivo import PropriedadesArquivo
 from .nf_parser import NfParser, XmlInvalido
 from .nf import Nf, NfInvalida

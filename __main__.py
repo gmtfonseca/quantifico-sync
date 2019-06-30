@@ -6,7 +6,7 @@ import os
 import logging
 
 NF = {
-    'PATH': os.path.abspath('nf'),
+    'PATH': os.path.abspath('../nf'),
     'EXTENSAO': 'XML'
 }
 PICKLE_PATH = os.path.abspath('quantisync.dat')
