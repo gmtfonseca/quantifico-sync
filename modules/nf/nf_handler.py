@@ -11,9 +11,9 @@ class NfHandler():
         nfInsercaoStrategy = NfInsercaoStrategy(self._httpService,
                                                 cliente,
                                                 servidor)
-        nfInsercaoStrategy.onInsercao(insercoes)
+        nfInsercaoStrategy.inserir(insercoes)
 
     def onRemocao(self, servidor, remocoes):
         nfRemocaoStrategy = NfRemocaoStrategy(self._httpService,
                                               servidor)
-        nfRemocaoStrategy.onRemocao(remocoes)
+        nfRemocaoStrategy.remover(remocoes)

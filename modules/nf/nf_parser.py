@@ -8,16 +8,32 @@ class XmlInvalido(Exception):
     pass
 
 
+def converteXmlParaDict(xml):
+    try:
+        nf = xmltodict.parse(xml)
+        return nf
+    except ExpatError:
+        raise XmlInvalido
+
+
+def removeTagsNaoUtilizadas(parsedNf):
+    try:
+        nfSemTagsNaoUtilizadas = parsedNf
+        del nfSemTagsNaoUtilizadas['nfeProc']['NFe']['Signature']
+        del nfSemTagsNaoUtilizadas['nfeProc']['protNFe']
+        return nfSemTagsNaoUtilizadas
+    except KeyError:
+        raise NfInvalida
+
+
 class NfParser:
     @classmethod
     def parse(cls, path):
         try:
-            xml = open(path, 'r').read()
-            parsedNf = xmltodict.parse(xml)
-            del parsedNf['nfeProc']['NFe']['Signature']
-            del parsedNf['nfeProc']['protNFe']
-            return parsedNf
-        except ExpatError:
-            raise XmlInvalido
-        except KeyError:
-            raise NfInvalida
+            with open(path, 'r') as arquivo:
+                xml = arquivo.read()
+                nf = converteXmlParaDict(xml)
+                nfSemAtributosNaoUtilizados = removeTagsNaoUtilizadas(nf)
+                return nfSemAtributosNaoUtilizados
+        except IOError:
+            raise

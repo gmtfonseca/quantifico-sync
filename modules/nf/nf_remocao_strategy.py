@@ -12,7 +12,7 @@ class NfRemocaoStrategy:
         self._servidor = servidor
         self._nfsRemovidasQueue = HttpDeleteQueue(httpService)
 
-    def onRemocao(self, remocoes):
+    def remover(self, remocoes):
         self._enqueueNfsRemovidas(remocoes)
         self._dequeueNfsRemovidas()
 

@@ -18,7 +18,7 @@ class NfInsercaoStrategy:
         self._nfsInseridasQueue = HttpStreamQueue(httpService,
                                                   self._streamGenerator)
 
-    def onInsercao(self, insercoes):
+    def inserir(self, insercoes):
         self._enqueueNfsInseridas(insercoes)
         self._dequeueNfsInseridas()
 
