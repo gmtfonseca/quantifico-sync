@@ -18,7 +18,7 @@ class ObservadorTest(unittest.TestCase):
         }
         mockHandler = Mock()
         observador = Observador(mockHandler, clienteMock, servidorMock)
-        observador.detectaMudancas()
+        observador.observar()
         mockHandler.onInsercao.assert_called_with(
             clienteMock, servidorMock, {'2865/1551545907.0'})
 
@@ -35,7 +35,7 @@ class ObservadorTest(unittest.TestCase):
         clienteMock.getEstado.return_value = {'2859/1551545907.0'}
         mockHandler = Mock()
         observador = Observador(mockHandler, clienteMock, servidorMock)
-        observador.detectaMudancas()
+        observador.observar()
         mockHandler.onRemocao.assert_called_with(
             servidorMock, {'2865/1551545907.0'})
 
