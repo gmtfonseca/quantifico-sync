@@ -6,7 +6,7 @@ import wx
 import os
 
 NF_PATH = os.path.abspath('../nf')
-PICKLE_PATH = os.path.abspath('quantisync.dat')
+PICKLE_PATH = os.path.abspath('../quantisync.dat')
 DELAY = 5.0
 
 

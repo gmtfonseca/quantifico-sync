@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class NfInvalida(Exception):
     pass
 
@@ -12,4 +15,6 @@ class Nf:
         self.conteudo = conteudo
 
     def toDict(self):
-        return vars(self)
+        selfCopy = deepcopy(self)
+        selfCopy.propriedadesArquivo = selfCopy.propriedadesArquivo.toDict()
+        return vars(selfCopy)

@@ -19,11 +19,11 @@ class Observador:
 
         if len(remocoes) > 0:
             logging.debug('remocao')
-            print(remocoes)
+            logging.debug(remocoes)
             self.handler.onRemocao(self.servidor, remocoes)
         elif len(insercoes) > 0:
             logging.debug('insercao')
-            print(insercoes)
+            logging.debug(insercoes)
             self.handler.onInsercao(self.cliente, self.servidor, insercoes)
 
     def _insercoes(self):

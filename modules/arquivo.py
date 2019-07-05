@@ -19,3 +19,6 @@ class PropriedadesArquivo:
 
     def getEstado(self):
         return '{}/{}'.format(self.nome, self.dataModificacaoSegundos)
+
+    def toDict(self):
+        return vars(self)

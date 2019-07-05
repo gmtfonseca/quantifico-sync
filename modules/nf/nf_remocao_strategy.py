@@ -1,6 +1,7 @@
 from requests.exceptions import HTTPError
 from modules.lib.network import HttpDeleteQueue
 from modules.arquivo import PropriedadesArquivo
+from http import HTTPStatus
 
 
 class NfRemocaoStrategy:
@@ -28,4 +29,5 @@ class NfRemocaoStrategy:
             pass
 
     def _postBatchHandler(self, response):
-        self._servidor.setEstado(response)
+        if (response.status_code == HTTPStatus.OK):
+            self._servidor.setEstado(response.json())

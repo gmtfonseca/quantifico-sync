@@ -3,7 +3,9 @@ from modules.lib.network import HttpStreamQueue
 from modules.arquivo import PropriedadesArquivo
 from .nf_parser import NfParser, XmlInvalido
 from .nf import Nf, NfInvalida
+from http import HTTPStatus
 import json
+import logging
 import os
 
 
@@ -46,12 +48,13 @@ class NfInsercaoStrategy:
     def _dequeueNfsInseridas(self):
         try:
             self._nfsInseridasQueue.dequeue(self._postBatchHandler)
-        except HTTPError:
-            pass
+        except HTTPError as error:
+            logging.debug(error)
 
     def _streamGenerator(self, nfs):
         for nf in nfs:
             yield json.dumps(nf, ensure_ascii=False).encode()
 
     def _postBatchHandler(self, response):
-        self._servidor.setEstado(response)
+        if (response.status_code == HTTPStatus.OK):
+            self._servidor.setEstado(response.json())
