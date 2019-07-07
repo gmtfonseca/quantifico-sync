@@ -1,33 +1,36 @@
-import logging
-
-
 class Observador:
     """
-    Detecta e propaga mudanças de estado entre Cliente e Servidor
+    Detecta mudanças de estado entre Cliente e Servidor
     """
 
-    def __init__(self, handler, cliente, servidor):
-        self.handler = handler
+    def __init__(self, cliente, servidor):
         self.cliente = cliente
         self.servidor = servidor
+        self._insercoes = {}
+        self._remocoes = {}
 
     def observar(self):
         self.cliente.carregaEstado()
+        self._detectaInsercoes()
+        self._detectaRemocoes()
 
-        remocoes = self._remocoes()
-        insercoes = self._insercoes()
+    def _detectaInsercoes(self):
+        self._insercoes = self.cliente.getEstado() - self.servidor.getEstado()
 
-        if len(remocoes) > 0:
-            logging.debug('remocao')
-            logging.debug(remocoes)
-            self.handler.onRemocao(self.servidor, remocoes)
-        elif len(insercoes) > 0:
-            logging.debug('insercao')
-            logging.debug(insercoes)
-            self.handler.onInsercao(self.cliente, self.servidor, insercoes)
+    def _detectaRemocoes(self):
+        self._remocoes = self.servidor.getEstado() - self.cliente.getEstado()
 
-    def _insercoes(self):
-        return self.cliente.getEstado() - self.servidor.getEstado()
+    def possuiMudancas(self):
+        return self.possuiInsercoes() or self.possuiRemocoes()
 
-    def _remocoes(self):
-        return self.servidor.getEstado() - self.cliente.getEstado()
+    def possuiInsercoes(self):
+        return len(self._insercoes) > 0
+
+    def possuiRemocoes(self):
+        return len(self._remocoes) > 0
+
+    def getInsercoes(self):
+        return self._insercoes
+
+    def getRemocoes(self):
+        return self._remocoes

@@ -2,6 +2,7 @@ import unittest
 import os
 from modules.nf.nf_handler import NfHandler
 from modules.estado import Cliente, Servidor
+from test.util.requests import MockResponse
 from unittest.mock import Mock
 
 NF = {
@@ -30,8 +31,9 @@ class NfHandlerTest(unittest.TestCase):
             '2859/1551545907.0',
             '2865/1551541907.0'
         }
+        response = MockResponse(insercoes, 200)
         httpService = Mock()
-        httpService.stream.return_value = insercoes
+        httpService.stream.return_value = response
         nfHandler = NfHandler(httpService)
         nfHandler.onInsercao(self.cliente, self.servidor, insercoes)
         self.assertEqual(self.servidor.getEstado(), insercoes)
@@ -42,8 +44,9 @@ class NfHandlerTest(unittest.TestCase):
         """
         remocoes = {'2859/1551545907.0'}
         estadoServidor = {'2865/1551541907.0'}
+        response = MockResponse(estadoServidor, 200)
         httpService = Mock()
-        httpService.delete.return_value = estadoServidor
+        httpService.delete.return_value = response
         nfHandler = NfHandler(httpService)
         nfHandler.onRemocao(self.servidor, remocoes)
         self.assertEqual(self.servidor.getEstado(), estadoServidor)

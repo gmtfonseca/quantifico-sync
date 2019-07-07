@@ -1,14 +1,17 @@
-from wx.adv import TaskBarIcon
-import wx
 from .cliente_config_dialog import ClienteConfigDialog
+from wx.adv import TaskBarIcon
+from modules.loop_thread import Estado
+import wx
+import os
 
 
 class MainTaskBarIcon(TaskBarIcon):
     def __init__(self, frame):
         TaskBarIcon.__init__(self)
-        icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/quantifico.ico', wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon, 'QuantiSync')
         self._frame = frame
+        self.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.onClickTaskBarIcon)
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -23,6 +26,17 @@ class MainTaskBarIcon(TaskBarIcon):
     def onConfiguracoes(self, event):
         self.configuracoesFrame = ClienteConfigDialog(self._frame)
         self.configuracoesFrame.Show()
+
+    def onClickTaskBarIcon(self, evt):
+        os.system('start {}'.format(os.path.abspath('../nf')))
+
+    def updateUI(self, estado):
+        if (estado == Estado.SYNCING):
+            icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud-sync.ico', wx.BITMAP_TYPE_ICO)
+            self.SetIcon(icon)
+        elif (estado == Estado.NORMAL):
+            icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud.ico', wx.BITMAP_TYPE_ICO)
+            self.SetIcon(icon, 'QuantiSync')
 
     def onSair(self, event):
         self._frame.loopThread.abort()

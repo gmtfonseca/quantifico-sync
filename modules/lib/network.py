@@ -10,10 +10,10 @@ class HttpService:
         self.url = url
         self.endpoint = endpoint
         # TODO - Remover
-        self.headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
-                        'eyJpZCI6IjVkMWY5NWFiYjUwM2I3MzVkOGE5ZjQxOCIsIm9yZ2FuaXphY2F' +
-                        'vIjoiNWQxZjk1M2RiNTAzYjczNWQ4YTlmNDE3IiwiaWF0IjoxNTYyMzYzODY' +
-                        '4LCJleHAiOjE1NjI0NTAyNjh9.eCWopiB6ACL6kyoAcbDbOW9-mOpMGIjBW5HLMsdzjCs'}
+        self.headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI' +
+                        '6IjVkMjIwMmQwOWNhOWJjMjY3MDlmOWUzNiIsIm9yZ2FuaXphY2FvIjoiNWQ' +
+                        'xZjk1M2RiNTAzYjczNWQ4YTlmNDE3IiwiaWF0IjoxNTYyNTEwMDQxL' +
+                        'CJleHAiOjE1NjI1OTY0NDF9.VdjJiIplWtUfGi-9BJaSHs83VV1Hf-kNLP7eHWFl1vg'}
 
     def post(self, json):
         try:

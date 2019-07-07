@@ -4,11 +4,14 @@ from modules.nf.nf_handler import NfHandler
 from modules.lib.network import HttpService
 
 
-class ObservadorFactory:
-    @staticmethod
-    def getObservadorNfs(nfsPath, picklePath):
+class NfsFactory:
+    @classmethod
+    def getObservador(cls, nfsPath, picklePath):
         cliente = Cliente(nfsPath, 'XML')
         servidor = Servidor(picklePath)
+        return Observador(cliente, servidor)
+
+    @classmethod
+    def getHandler(cls):
         httpService = HttpService('sync/nfs')
-        nfHandler = NfHandler(httpService)
-        return Observador(nfHandler, cliente, servidor)
+        return NfHandler(httpService)
