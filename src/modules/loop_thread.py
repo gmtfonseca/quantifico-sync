@@ -62,5 +62,5 @@ class LoopThread(Thread):
         evt = UIEvent(myEVT_UI, -1, self._estado)
         wx.PostEvent(self._parent, evt)
 
-    def abort(self):
+    def abortar(self):
         self._estado = Estado.ABORT

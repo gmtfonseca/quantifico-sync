@@ -1,4 +1,7 @@
+from pathlib import Path
 import wx
+
+ICONS_PATH = Path(__file__).parent / 'images' / 'icons'
 
 
 class ClienteConfigDialog(wx.Dialog):
@@ -19,9 +22,9 @@ class ClienteConfigDialog(wx.Dialog):
         sizer.Add(lblDirNfs, pos=(0, 0), flag=wx.ALL, border=10)
 
         self.txtDirNfs = wx.TextCtrl(self.panel, size=(250, 35))
-        iconSelecionar = wx.Bitmap(
-            'F:/Projetos/quantifico/quantifico-sync/ui/images/icons/folder.png', wx.BITMAP_TYPE_ANY)
-        btnSelecionar = wx.BitmapButton(self.panel, bitmap=iconSelecionar, size=(50, 35))
+        # iconSelecionar = wx.Bitmap(iconPath, wx.BITMAP_TYPE_ANY)
+        btnSelecionar = wx.Button(self.panel, size=(50, 35))
+        # btnSelecionar = wx.BitmapButton(self.panel, bitmap=iconSelecionar, size=(50, 35))
         sizer.Add(self.txtDirNfs, pos=(1, 0), span=(1, 4), flag=wx.LEFT | wx.EXPAND, border=10)
         sizer.Add(btnSelecionar, pos=(1, 4))
 

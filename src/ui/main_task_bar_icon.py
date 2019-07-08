@@ -1,6 +1,7 @@
 from .cliente_config_dialog import ClienteConfigDialog
 from wx.adv import TaskBarIcon
 from modules.loop_thread import Estado
+from .assets import icons
 import wx
 import os
 
@@ -8,7 +9,7 @@ import os
 class MainTaskBarIcon(TaskBarIcon):
     def __init__(self, frame):
         TaskBarIcon.__init__(self)
-        icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud.ico', wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(icons.CLOUD.as_posix())
         self.SetIcon(icon, 'QuantiSync')
         self._frame = frame
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.onClickTaskBarIcon)
@@ -32,13 +33,13 @@ class MainTaskBarIcon(TaskBarIcon):
 
     def updateUI(self, estado):
         if (estado == Estado.SYNCING):
-            icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud-sync.ico', wx.BITMAP_TYPE_ICO)
-            self.SetIcon(icon)
+            icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
+            self.SetIcon(icon, 'Sincronizando...')
         elif (estado == Estado.NORMAL):
-            icon = wx.Icon('F:/Projetos/quantifico/quantifico-sync/ui/images/icons/cloud.ico', wx.BITMAP_TYPE_ICO)
+            icon = wx.Icon(icons.CLOUD.as_posix())
             self.SetIcon(icon, 'QuantiSync')
 
     def onSair(self, event):
-        self._frame.loopThread.abort()
+        self._frame.loopThread.abortar()
         wx.CallAfter(self._frame.Destroy)
         wx.CallAfter(self.Destroy)
