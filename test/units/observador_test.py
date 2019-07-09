@@ -1,5 +1,5 @@
 import unittest
-from modules.observador import Observador
+from src.modules.observador import Observador
 from unittest.mock import Mock
 
 
@@ -16,11 +16,10 @@ class ObservadorTest(unittest.TestCase):
             '2859/1551545907.0',
             '2865/1551545907.0',
         }
-        mockHandler = Mock()
-        observador = Observador(mockHandler, clienteMock, servidorMock)
+        observador = Observador(clienteMock, servidorMock)
         observador.observar()
-        mockHandler.onInsercao.assert_called_with(
-            clienteMock, servidorMock, {'2865/1551545907.0'})
+        self.assertTrue(observador.possuiInsercoes())
+        self.assertEqual(observador.getInsercoes(), {'2865/1551545907.0'})
 
     def test_deteccao_remocoes(self):
         """
@@ -33,11 +32,10 @@ class ObservadorTest(unittest.TestCase):
         }
         clienteMock = Mock()
         clienteMock.getEstado.return_value = {'2859/1551545907.0'}
-        mockHandler = Mock()
-        observador = Observador(mockHandler, clienteMock, servidorMock)
+        observador = Observador(clienteMock, servidorMock)
         observador.observar()
-        mockHandler.onRemocao.assert_called_with(
-            servidorMock, {'2865/1551545907.0'})
+        self.assertTrue(observador.possuiRemocoes())
+        self.assertEqual(observador.getRemocoes(), {'2865/1551545907.0'})
 
 
 if __name__ == '__main__':

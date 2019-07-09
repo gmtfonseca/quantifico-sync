@@ -1,7 +1,7 @@
 import unittest
 import os
-from modules.nf.nf_handler import NfHandler
-from modules.estado import Cliente, Servidor
+from src.modules.nf.nf_handler import NfHandler
+from src.modules.estado import Cliente, Servidor
 from test.util.requests import MockResponse
 from unittest.mock import Mock
 

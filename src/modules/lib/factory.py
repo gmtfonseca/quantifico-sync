@@ -1,7 +1,7 @@
-from modules.observador import Observador
-from modules.estado import Cliente, Servidor
-from modules.nf.nf_handler import NfHandler
-from modules.lib.network import HttpService
+from ..observador import Observador
+from ..estado import Cliente, Servidor
+from ..nf.nf_handler import NfHandler
+from ..lib.network import HttpService
 
 
 class NfsFactory:

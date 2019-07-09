@@ -1,5 +1,5 @@
-from modules.lib.network import HttpStreamQueue
-from modules.arquivo import PropriedadesArquivo
+from ..lib.network import HttpStreamQueue
+from ..arquivo import PropriedadesArquivo
 from .nf_parser import NfParser
 from .nf import Nf
 from http import HTTPStatus

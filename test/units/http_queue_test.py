@@ -1,5 +1,5 @@
 import unittest
-from modules.lib.network import HttpRequestQueue, HttpDeleteQueue, HttpStreamQueue
+from src.modules.lib.network import HttpRequestQueue, HttpDeleteQueue, HttpStreamQueue
 from unittest.mock import Mock
 
 BATCH_SIZE = 2

@@ -1,6 +1,6 @@
 import unittest
-from modules.nf.nf_parser import NfParser, XmlInvalido
-from modules.nf.nf import NfInvalida
+from src.modules.nf.nf_parser import NfParser, XmlInvalido
+from src.modules.nf.nf import NfInvalida
 import collections
 
 
