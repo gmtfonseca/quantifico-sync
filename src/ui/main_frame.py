@@ -1,8 +1,7 @@
-
 from .main_task_bar_icon import MainTaskBarIcon
+from .background_thread import BackgroundThread
+from .events import EVT_UI
 from modules.lib.factory import NfsFactory
-from modules.loop_thread import LoopThread
-from .events.task_bar_icon import EVT_UI
 import wx
 import os
 
@@ -16,14 +15,16 @@ class MainFrame(wx.Frame):
         super(MainFrame, self).__init__(parent)
         self.Bind(EVT_UI, self.onUpdateUI)
         self.taskBarIcon = MainTaskBarIcon(self)
-        self.loopThread = self._criaLoopThread()
-        self.loopThread.start()
+        self.backgroundThread = self._criaBackgroundThread()
+        self.backgroundThread.start()
 
-    def _criaLoopThread(self):
+    def _criaBackgroundThread(self):
         nfsObservador = NfsFactory.getObservador(NF_PATH, PICKLE_PATH)
         nfsHandler = NfsFactory.getHandler()
-        return LoopThread(nfsObservador, nfsHandler, DELAY, self)
+        return BackgroundThread(nfsObservador, nfsHandler, DELAY, self)
 
     def onUpdateUI(self, evt):
-        print(evt.getValue())
-        self.taskBarIcon.updateUI(evt.getValue())
+        if evt.isFatal():
+            self.backgroundThread.abortar()
+
+        self.taskBarIcon.updateUI(evt.getEstado())

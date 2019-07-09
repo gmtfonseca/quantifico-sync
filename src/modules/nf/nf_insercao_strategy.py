@@ -1,11 +1,9 @@
-from requests.exceptions import HTTPError
 from modules.lib.network import HttpStreamQueue
 from modules.arquivo import PropriedadesArquivo
-from .nf_parser import NfParser, XmlInvalido
-from .nf import Nf, NfInvalida
+from .nf_parser import NfParser
+from .nf import Nf
 from http import HTTPStatus
 import json
-import logging
 import os
 
 
@@ -30,26 +28,16 @@ class NfInsercaoStrategy:
             self._nfsInseridasQueue.enqueue(nfInserida.toDict())
 
     def _setupNfInserida(self, estado):
-        try:
-            propriedadesArquivo = PropriedadesArquivo.fromEstado(estado)
-            pathXml = os.path.join(self._cliente.getPath(),
-                                   '{}.{}'.format(propriedadesArquivo.nome,
-                                                  self._cliente.getExtensao()))
-            conteudoNf = NfParser.parse(pathXml)
-            nf = Nf(propriedadesArquivo, conteudoNf)
-            return nf
-        except FileNotFoundError:
-            print('Arquivo não encontrado')
-        except XmlInvalido:
-            print('XML Inválido')
-        except NfInvalida:
-            print('Nf Invalida')
+        propriedadesArquivo = PropriedadesArquivo.fromEstado(estado)
+        pathXml = os.path.join(self._cliente.getPath(),
+                               '{}.{}'.format(propriedadesArquivo.nome,
+                                              self._cliente.getExtensao()))
+        conteudoNf = NfParser.parse(pathXml)
+        nf = Nf(propriedadesArquivo, conteudoNf)
+        return nf
 
     def _dequeueNfsInseridas(self):
-        try:
-            self._nfsInseridasQueue.dequeue(self._postBatchHandler)
-        except HTTPError as error:
-            logging.debug(error)
+        self._nfsInseridasQueue.dequeue(self._postBatchHandler)
 
     def _streamGenerator(self, nfs):
         for nf in nfs:

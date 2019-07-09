@@ -1,7 +1,7 @@
 from .cliente_config_dialog import ClienteConfigDialog
 from wx.adv import TaskBarIcon
-from modules.loop_thread import Estado
-from .assets import icons
+from .background_thread import Estado
+from .assets import icons, messages
 import wx
 import os
 
@@ -38,8 +38,11 @@ class MainTaskBarIcon(TaskBarIcon):
         elif (estado == Estado.NORMAL):
             icon = wx.Icon(icons.CLOUD.as_posix())
             self.SetIcon(icon, 'QuantiSync')
+        elif (estado == Estado.NO_CONNECTION):
+            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
+            self.SetIcon(icon, messages.CONNECTION_FAILED)
 
     def onSair(self, event):
-        self._frame.loopThread.abortar()
+        self._frame.backgroundThread.abortar()
         wx.CallAfter(self._frame.Destroy)
         wx.CallAfter(self.Destroy)

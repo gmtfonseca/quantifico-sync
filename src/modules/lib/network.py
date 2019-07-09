@@ -1,4 +1,3 @@
-import logging
 import requests
 from config.network import HTTP_CONFIG
 from queue import Queue
@@ -16,44 +15,32 @@ class HttpService:
                         'CJleHAiOjE1NjI1OTY0NDF9.VdjJiIplWtUfGi-9BJaSHs83VV1Hf-kNLP7eHWFl1vg'}
 
     def post(self, json):
-        try:
-            response = requests.post(self.url + self.endpoint,
-                                     json=json,
-                                     headers=self.headers)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.ConnectionError as error:
-            logging.debug(error)
+        response = requests.post(self.url + self.endpoint,
+                                 json=json,
+                                 headers=self.headers)
+        response.raise_for_status()
+        return response
 
     def put(self, json):
-        try:
-            response = requests.put(self.url + self.endpoint,
-                                    json=json,
-                                    headers=self.headers)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.ConnectionError as error:
-            logging.debug(error)
+        response = requests.put(self.url + self.endpoint,
+                                json=json,
+                                headers=self.headers)
+        response.raise_for_status()
+        return response
 
     def delete(self, json):
-        try:
-            response = requests.delete(self.url + self.endpoint,
-                                       json=json,
-                                       headers=self.headers)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.ConnectionError as error:
-            logging.debug(error)
+        response = requests.delete(self.url + self.endpoint,
+                                   json=json,
+                                   headers=self.headers)
+        response.raise_for_status()
+        return response
 
     def stream(self, data, streamGenerator):
-        try:
-            response = requests.post(self.url + self.endpoint,
-                                     data=streamGenerator(data),
-                                     headers=self.headers)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.ConnectionError as error:
-            logging.debug(error)
+        response = requests.post(self.url + self.endpoint,
+                                 data=streamGenerator(data),
+                                 headers=self.headers)
+        response.raise_for_status()
+        return response
 
 
 class HttpRequestQueue:
