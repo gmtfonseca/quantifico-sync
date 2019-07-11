@@ -1,5 +1,4 @@
-from core.observador import Observador
-from core.estado import Cliente, Servidor
+from core.estado import Cliente, Servidor, Observador
 from core.nf.nf_handler import NfHandler
 from lib.network import HttpService
 
