@@ -1,4 +1,4 @@
-from ui.main_frame import MainFrame
+from quantisync.ui.main_frame import MainFrame
 import wx
 import logging
 

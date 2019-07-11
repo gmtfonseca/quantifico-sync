@@ -1,7 +1,7 @@
-from .cliente_config_dialog import ClienteConfigDialog
+from ui.cliente_config_dialog import ClienteConfigDialog
+from ui.background_thread import Estado
+from ui.assets import icons, messages
 from wx.adv import TaskBarIcon
-from .background_thread import Estado
-from .assets import icons, messages
 import wx
 import os
 

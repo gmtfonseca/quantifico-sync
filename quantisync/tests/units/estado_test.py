@@ -1,6 +1,6 @@
 import unittest
 import os
-from src.modules.estado import Cliente, Servidor
+from core.estado import Cliente, Servidor
 
 
 class ClienteTest(unittest.TestCase):
@@ -13,7 +13,7 @@ class ClienteTest(unittest.TestCase):
             '2859/1561936295.8213189',
             '2865/1561936295.8394666'
         }
-        PATH = os.path.abspath('test/fixture/xml')
+        PATH = os.path.abspath('tests/fixture/xml')
         EXTENSAO = 'XML'
         cliente = Cliente(PATH, EXTENSAO)
         cliente.carregaEstado()
@@ -31,7 +31,7 @@ class ServidorTest(unittest.TestCase):
             '2859/1551545907.0',
             '2865/1551545907.0',
         }
-        path = os.path.abspath('test/fixture/pickle/quantisync.dat')
+        path = os.path.abspath('tests/fixture/pickle/quantisync.dat')
         servidor = Servidor(path)
         self.assertEqual(servidor.getEstado(), estadoCorreto)
 

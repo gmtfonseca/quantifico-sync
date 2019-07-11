@@ -1,6 +1,6 @@
+from core.arquivo import PropriedadesArquivo
+from lib.util import ArquivoUtil
 import glob
-from .arquivo import PropriedadesArquivo
-from .lib.util import ArquivoUtil
 import pickle
 import os
 

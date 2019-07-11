@@ -1,7 +1,7 @@
-from .main_task_bar_icon import MainTaskBarIcon
-from .background_thread import BackgroundThread
-from .events import EVT_UI
-from modules.lib.factory import NfsFactory
+from ui.main_task_bar_icon import MainTaskBarIcon
+from ui.background_thread import BackgroundThread
+from ui.events import EVT_UI
+from lib.factory import NfsFactory
 import wx
 import os
 

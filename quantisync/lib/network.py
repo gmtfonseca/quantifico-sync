@@ -1,5 +1,5 @@
 import requests
-from ...config.network import HTTP_CONFIG
+from config.network import HTTP_CONFIG
 from queue import Queue
 
 

@@ -1,5 +1,5 @@
 import unittest
-from src.modules.observador import Observador
+from core.observador import Observador
 from unittest.mock import Mock
 
 

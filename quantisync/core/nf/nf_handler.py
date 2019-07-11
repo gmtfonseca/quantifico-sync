@@ -1,6 +1,6 @@
 # TODO - Desacoplar estratégias de handler
-from .nf_insercao_strategy import NfInsercaoStrategy
-from .nf_remocao_strategy import NfRemocaoStrategy
+from core.nf.nf_insercao_strategy import NfInsercaoStrategy
+from core.nf.nf_remocao_strategy import NfRemocaoStrategy
 
 
 class NfHandler():

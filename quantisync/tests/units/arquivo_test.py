@@ -1,5 +1,5 @@
 import unittest
-from src.modules.arquivo import PropriedadesArquivo
+from core.arquivo import PropriedadesArquivo
 
 
 class PropriedadesArquivoTest(unittest.TestCase):

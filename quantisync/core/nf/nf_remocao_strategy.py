@@ -1,6 +1,6 @@
 from requests.exceptions import HTTPError
-from ..lib.network import HttpDeleteQueue
-from ..arquivo import PropriedadesArquivo
+from lib.network import HttpDeleteQueue
+from core.arquivo import PropriedadesArquivo
 from http import HTTPStatus
 
 

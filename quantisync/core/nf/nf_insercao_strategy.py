@@ -1,7 +1,7 @@
-from ..lib.network import HttpStreamQueue
-from ..arquivo import PropriedadesArquivo
-from .nf_parser import NfParser
-from .nf import Nf
+from lib.network import HttpStreamQueue
+from core.arquivo import PropriedadesArquivo
+from core.nf.nf_parser import NfParser
+from core.nf.nf import Nf
 from http import HTTPStatus
 import json
 import os

@@ -1,13 +1,13 @@
 import unittest
-from src.modules.nf.nf_parser import NfParser, XmlInvalido
-from src.modules.nf.nf import NfInvalida
+from core.nf.nf_parser import NfParser, XmlInvalido
+from core.nf.nf import NfInvalida
 import collections
 
 
 class NfParserTest(unittest.TestCase):
 
     def setUp(self):
-        self.nf = NfParser.parse('test/fixture/xml/2859.XML')
+        self.nf = NfParser.parse('tests/fixture/xml/2859.XML')
 
     def test_produz_dicionario(self):
         "Testa se produz dicionário"
@@ -30,12 +30,12 @@ class NfParserTest(unittest.TestCase):
     def test_xml_invalido_exception(self):
         "Testa se produz exception XmlInvalida"
         with self.assertRaises(XmlInvalido):
-            NfParser.parse('test/fixture/invalid/xml_invalido.XML')
+            NfParser.parse('tests/fixture/invalid/xml_invalido.XML')
 
     def test_nf_invalida_exception(self):
         "Testa se produz exception NfInvalida"
         with self.assertRaises(NfInvalida):
-            NfParser.parse('test/fixture/invalid/nf_invalida.XML')
+            NfParser.parse('tests/fixture/invalid/nf_invalida.XML')
 
 
 if __name__ == '__main__':

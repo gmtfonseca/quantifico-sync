@@ -1,5 +1,5 @@
 from xml.parsers.expat import ExpatError
-from .nf import NfInvalida
+from core.nf.nf import NfInvalida
 import xmltodict
 
 
