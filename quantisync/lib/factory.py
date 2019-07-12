@@ -1,6 +1,6 @@
-from core.estado import Cliente, Servidor, Observador
-from core.nf.nf_handler import NfHandler
-from lib.network import HttpService
+from quantisync.core.estado import Cliente, Servidor, Observador
+from quantisync.core.nf.nf_handler import NfHandler
+from quantisync.lib.network import HttpService
 
 
 class NfsFactory:

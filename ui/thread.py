@@ -1,12 +1,14 @@
-from requests.exceptions import ConnectionError, HTTPError
-from urllib3.connection import NewConnectionError
+import time
+import logging
 from threading import Thread
 from enum import Enum
 from http import HTTPStatus
-from ui.events import UIEvent, myEVT_UI
-import time
+
 import wx
-import logging
+from requests.exceptions import ConnectionError, HTTPError
+from urllib3.connection import NewConnectionError
+
+from ui.events import UIEvent, myEVT_UI
 
 
 class Estado(Enum):

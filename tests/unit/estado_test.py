@@ -1,6 +1,7 @@
 import unittest
-import os
-from core.estado import Cliente, Servidor
+
+from quantisync.core.estado import Cliente, Servidor
+from tests.config import FIXTURE_PATH
 
 
 class ClienteTest(unittest.TestCase):
@@ -10,14 +11,10 @@ class ClienteTest(unittest.TestCase):
         Testa se estado é iniciado corretamente
         """
         estadoCorreto = {
-            '2859/1561936295.8213189',
-            '2865/1561936295.8394666'
+            'valid1/1562953320.685',
+            'valid2/1562953323.189'
         }
-        PATH = os.path.abspath('tests/fixture/xml')
-        EXTENSAO = 'XML'
-        cliente = Cliente(PATH, EXTENSAO)
-        cliente.carregaEstado()
-
+        cliente = Cliente(FIXTURE_PATH / 'cliente', 'XML')
         self.assertEqual(cliente.getEstado(), estadoCorreto)
 
 
@@ -31,8 +28,7 @@ class ServidorTest(unittest.TestCase):
             '2859/1551545907.0',
             '2865/1551545907.0',
         }
-        path = os.path.abspath('tests/fixture/pickle/quantisync.dat')
-        servidor = Servidor(path)
+        servidor = Servidor(FIXTURE_PATH / 'quantisync.dat')
         self.assertEqual(servidor.getEstado(), estadoCorreto)
 
 

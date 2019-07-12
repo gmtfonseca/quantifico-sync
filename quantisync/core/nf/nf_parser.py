@@ -1,6 +1,7 @@
-from xml.parsers.expat import ExpatError
-from core.nf.nf import NfInvalida
 import xmltodict
+from xml.parsers.expat import ExpatError
+
+from quantisync.core.nf.nf import NfInvalida
 
 
 class XmlInvalido(Exception):

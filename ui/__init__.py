@@ -1,14 +1,14 @@
-from ui.main_frame import MainFrame
-import wx
 import logging
 
+import wx
 
-def main():
+from ui.main import MainFrame
+
+
+def run():
     logging.basicConfig(level=logging.DEBUG)
+
     app = wx.App()
+
     MainFrame(None)
     app.MainLoop()
-
-
-if __name__ == "__main__":
-    main()

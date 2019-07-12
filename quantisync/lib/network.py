@@ -1,6 +1,8 @@
-import requests
-from config.network import HTTP_CONFIG
 from queue import Queue
+
+import requests
+
+from quantisync.config.network import HTTP_CONFIG
 
 
 class HttpService:
@@ -9,10 +11,9 @@ class HttpService:
         self.url = url
         self.endpoint = endpoint
         # TODO - Remover
-        self.headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI' +
-                        '6IjVkMjIwMmQwOWNhOWJjMjY3MDlmOWUzNiIsIm9yZ2FuaXphY2FvIjoiNWQ' +
-                        'xZjk1M2RiNTAzYjczNWQ4YTlmNDE3IiwiaWF0IjoxNTYyNTEwMDQxL' +
-                        'CJleHAiOjE1NjI1OTY0NDF9.VdjJiIplWtUfGi-9BJaSHs83VV1Hf-kNLP7eHWFl1vg'}
+        self.headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkMjIwMmQwOWNhO' +
+                        'WJjMjY3MDlmOWUzNiIsIm9yZ2FuaXphY2FvIjoiNWQxZjk1M2RiNTAzYjczNWQ4YTlmNDE3IiwiaWF0IjoxN' +
+                        'TYyOTU4Mjk5LCJleHAiOjE1NjMwNDQ2OTl9.YFpoJfsO80euMR1k0LMdT1nWigQXLLEeZvdxFuvUmJo'}
 
     def post(self, json):
         response = requests.post(self.url + self.endpoint,

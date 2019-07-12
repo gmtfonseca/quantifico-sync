@@ -1,8 +1,9 @@
-from core.arquivo import PropriedadesArquivo
-from lib.util import ArquivoUtil
 import glob
 import pickle
 import os
+
+from quantisync.core.arquivo import PropriedadesArquivo
+from quantisync.lib.util import ArquivoUtil
 
 
 class Cliente:

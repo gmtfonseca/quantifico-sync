@@ -1,6 +1,7 @@
 import unittest
-from core.observador import Observador
 from unittest.mock import Mock
+
+from quantisync.core.estado import Observador
 
 
 class ObservadorTest(unittest.TestCase):

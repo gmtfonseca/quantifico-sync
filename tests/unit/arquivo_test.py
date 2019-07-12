@@ -1,5 +1,5 @@
 import unittest
-from core.arquivo import PropriedadesArquivo
+from quantisync.core.arquivo import PropriedadesArquivo
 
 
 class PropriedadesArquivoTest(unittest.TestCase):

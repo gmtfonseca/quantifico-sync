@@ -1,6 +1,7 @@
 import unittest
-from lib.network import HttpRequestQueue, HttpDeleteQueue, HttpStreamQueue
 from unittest.mock import Mock
+
+from quantisync.lib.network import HttpRequestQueue, HttpDeleteQueue, HttpStreamQueue
 
 BATCH_SIZE = 2
 

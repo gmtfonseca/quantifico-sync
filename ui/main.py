@@ -1,9 +1,11 @@
-from ui.main_task_bar_icon import MainTaskBarIcon
-from ui.background_thread import BackgroundThread
-from ui.events import EVT_UI
-from lib.factory import NfsFactory
 import wx
 import os
+
+from ui.task_bar import MainTaskBarIcon
+from ui.thread import BackgroundThread
+from ui.events import EVT_UI
+from quantisync.lib.factory import NfsFactory
+
 
 NF_PATH = os.path.abspath('../nf')
 PICKLE_PATH = os.path.abspath('../quantisync.dat')

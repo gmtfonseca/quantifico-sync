@@ -1,13 +1,15 @@
 import unittest
-from core.nf.nf_parser import NfParser, XmlInvalido
-from core.nf.nf import NfInvalida
 import collections
+
+from quantisync.core.nf.nf_parser import NfParser, XmlInvalido
+from quantisync.core.nf.nf import NfInvalida
+from tests.config import FIXTURE_PATH
 
 
 class NfParserTest(unittest.TestCase):
 
     def setUp(self):
-        self.nf = NfParser.parse('tests/fixture/xml/2859.XML')
+        self.nf = NfParser.parse(FIXTURE_PATH / 'cliente/valid1.XML')
 
     def test_produz_dicionario(self):
         "Testa se produz dicionário"
@@ -30,12 +32,12 @@ class NfParserTest(unittest.TestCase):
     def test_xml_invalido_exception(self):
         "Testa se produz exception XmlInvalida"
         with self.assertRaises(XmlInvalido):
-            NfParser.parse('tests/fixture/invalid/xml_invalido.XML')
+            NfParser.parse(FIXTURE_PATH / 'invalid1.XML')
 
     def test_nf_invalida_exception(self):
         "Testa se produz exception NfInvalida"
         with self.assertRaises(NfInvalida):
-            NfParser.parse('tests/fixture/invalid/nf_invalida.XML')
+            NfParser.parse(FIXTURE_PATH / 'invalidnf.XML')
 
 
 if __name__ == '__main__':

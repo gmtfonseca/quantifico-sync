@@ -1,9 +1,11 @@
-from ui.cliente_config_dialog import ClienteConfigDialog
-from ui.background_thread import Estado
-from ui.assets import icons, messages
+import os
+
 from wx.adv import TaskBarIcon
 import wx
-import os
+
+from ui.config import ConfigDialog
+from ui.thread import Estado
+from ui.assets import icons, messages
 
 
 class MainTaskBarIcon(TaskBarIcon):
@@ -25,7 +27,7 @@ class MainTaskBarIcon(TaskBarIcon):
         return menu
 
     def onConfiguracoes(self, event):
-        self.configuracoesFrame = ClienteConfigDialog(self._frame)
+        self.configuracoesFrame = ConfigDialog(self._frame)
         self.configuracoesFrame.Show()
 
     def onClickTaskBarIcon(self, evt):

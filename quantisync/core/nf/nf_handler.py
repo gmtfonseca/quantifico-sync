@@ -1,11 +1,13 @@
-from lib.network import HttpStreamQueue, HttpDeleteQueue
-from core.arquivo import PropriedadesArquivo
-from core.nf.nf_parser import NfParser
-from core.nf.nf import Nf
-from requests.exceptions import HTTPError
-from http import HTTPStatus
 import json
 import os
+
+from requests.exceptions import HTTPError
+from http import HTTPStatus
+
+from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
+from quantisync.core.arquivo import PropriedadesArquivo
+from quantisync.core.nf.nf_parser import NfParser
+from quantisync.core.nf.nf import Nf
 
 
 class NfHandler():
