@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from quantisync.core.nf.nf_handler import NfHandler
 from quantisync.core.estado import Cliente, Servidor
-from tests.mock import MockResponse
+from tests.shared import MockResponse
 from tests.config import FIXTURE_PATH
 
 

@@ -1,6 +1,5 @@
-import glob
 import pickle
-import os
+from pathlib import Path
 
 from quantisync.core.arquivo import PropriedadesArquivo
 from quantisync.lib.util import ArquivoUtil
@@ -19,7 +18,7 @@ class Cliente:
         self.carregaEstado()
 
     def carregaEstado(self):
-        arquivos = glob.glob('{}/*.{}'.format(self._path, self._extensao))
+        arquivos = Path(self._path).glob('*.{}'.format(self._extensao))
         self._estado = {PropriedadesArquivo(ArquivoUtil.nomeBase(a),
                                             ArquivoUtil.dataModificacaoSegundos(a)).getEstado()
                         for a in arquivos}
@@ -48,23 +47,25 @@ class Servidor:
         self.carregaEstado()
 
     def carregaEstado(self):
-        if not os.path.isfile(self._path):
+        pickleFile = Path(self._path)
+        if not pickleFile.exists():
             self._criaPickleVazio()
-        elif os.path.getsize(self._path) > 0:
-            self._estado = pickle.load(open(self._path, "rb"))
+        elif pickleFile.stat().st_size > 0:
+            with pickleFile.open('rb') as f:
+                self._estado = pickle.load(f)
 
     def _criaPickleVazio(self):
-        with open(self._path, 'wb') as file:
+        with open(self._path, 'wb') as f:
             self._estado = set()
-            pickle.dump(self._estado, file, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self._estado, f, pickle.HIGHEST_PROTOCOL)
 
     def setEstado(self, estado):
         self._estado = set(estado)
         self._serializaEstado()
 
     def _serializaEstado(self):
-        with open(self._path, "wb") as file:
-            pickle.dump(self._estado, file, pickle.HIGHEST_PROTOCOL)
+        with open(self._path, "wb") as f:
+            pickle.dump(self._estado, f, pickle.HIGHEST_PROTOCOL)
 
     def getEstado(self):
         return self._estado
