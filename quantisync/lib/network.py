@@ -3,43 +3,55 @@ from queue import Queue
 import requests
 
 from quantisync.config.network import HTTP_CONFIG
+from quantisync.lib.factory import AuthFactory
+
+
+class HttpHeaders:
+    def __init__(self, token):
+        self._token = token
+
+    def setToken(self, token):
+        self._token = token
+        return self
+
+    def toDict(self):
+        return {
+            'Authorization': 'Bearer {}'.format(self._token)
+        }
 
 
 class HttpService:
 
-    def __init__(self, endpoint, url=HTTP_CONFIG['url']):
-        self.url = url
+    def __init__(self, endpoint, url=HTTP_CONFIG['URL'], tokenStorageService=AuthFactory.getKeyringTokenStorage()):
         self.endpoint = endpoint
-        # TODO - Remover
-        self.headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkMjIwMmQwOWNhO' +
-                        'WJjMjY3MDlmOWUzNiIsIm9yZ2FuaXphY2FvIjoiNWQxZjk1M2RiNTAzYjczNWQ4YTlmNDE3IiwiaWF0IjoxN' +
-                        'TYyOTU4Mjk5LCJleHAiOjE1NjMwNDQ2OTl9.YFpoJfsO80euMR1k0LMdT1nWigQXLLEeZvdxFuvUmJo'}
+        self.url = url
+        self.tokenStorageService = tokenStorageService
 
     def post(self, json):
         response = requests.post(self.url + self.endpoint,
                                  json=json,
-                                 headers=self.headers)
+                                 headers=HttpHeaders(self.tokenStorageService.getToken()).toDict())
         response.raise_for_status()
         return response
 
     def put(self, json):
         response = requests.put(self.url + self.endpoint,
                                 json=json,
-                                headers=self.headers)
+                                headers=HttpHeaders(self.tokenStorageService.getToken()).toDict())
         response.raise_for_status()
         return response
 
     def delete(self, json):
         response = requests.delete(self.url + self.endpoint,
                                    json=json,
-                                   headers=self.headers)
+                                   headers=HttpHeaders(self.tokenStorageService.getToken()).toDict())
         response.raise_for_status()
         return response
 
     def stream(self, data, streamGenerator):
         response = requests.post(self.url + self.endpoint,
                                  data=streamGenerator(data),
-                                 headers=self.headers)
+                                 headers=HttpHeaders(self.tokenStorageService.getToken()).toDict())
         response.raise_for_status()
         return response
 

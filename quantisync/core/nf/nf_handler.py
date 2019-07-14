@@ -1,7 +1,6 @@
 import json
 import os
 
-from requests.exceptions import HTTPError
 from http import HTTPStatus
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
@@ -86,10 +85,7 @@ class NfRemocaoStrategy:
             self._nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
 
     def _dequeueNfsRemovidas(self):
-        try:
-            self._nfsRemovidasQueue.dequeue(self._postBatchHandler)
-        except HTTPError:
-            pass
+        self._nfsRemovidasQueue.dequeue(self._postBatchHandler)
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):

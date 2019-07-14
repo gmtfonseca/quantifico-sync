@@ -1,16 +1,42 @@
 import unittest
-# from src.modules.lib.network import HttpService
+from unittest.mock import Mock
+
+# from requests.exceptions import HTTPError
+
+from quantisync.lib.auth import Auth, EmptyEmail, KeyringTokenStorage  # , InvalidUser
+# from tests.shared import MockResponse
 
 
-class AuthTest(unittest.TestCase):
+class KeyringAuthTest(unittest.TestCase):
 
-    def test_signin(self):
+    def setUp(self):
+        httpService = Mock()
+        httpService.post.return_value = 'valid_token'
+        keyringTokenStorage = KeyringTokenStorage('test')
+        self.auth = Auth(httpService, keyringTokenStorage)
+
+    def test_exception_when_empty_email(self):
         """
-        Testa se atributos são inicializados corretamente a partir do estado
+        Email em branco deve disparar exception
         """
-        pass
-        # token = Auth.signin(usuario, senha)
-        # self.assertEqual(arquivo.dataModificacaoSegundos, 1000001.1)
+        with self.assertRaises(EmptyEmail):
+            self.auth.signin('', '')
+
+    def test_token_update_when_signin(self):
+        """
+        Signin deve atualizar token corretamente
+        """
+        token = self.auth.signin('gustavo', '1234')
+        self.assertEqual(token, 'valid_token')
+        self.assertEqual(self.auth.getToken(), 'valid_token')
+
+    def test_token_update_when_signout(self):
+        """
+        Signout deve remover token corretamente
+        """
+        self.auth.signin('gustavo', '1234')
+        self.auth.signout()
+        self.assertIsNone(self.auth.getToken())
 
 
 if __name__ == '__main__':

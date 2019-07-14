@@ -43,6 +43,9 @@ class MainTaskBarIcon(TaskBarIcon):
         elif (estado == Estado.NO_CONNECTION):
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self.SetIcon(icon, messages.CONNECTION_FAILED)
+        elif (estado == Estado.UNAUTHORIZED):
+            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
+            self.SetIcon(icon, messages.UNAUTHORIZED_USER)
 
     def onSair(self, event):
         self._frame.backgroundThread.abortar()
