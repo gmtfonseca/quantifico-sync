@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-# MODEL
+from quantisync.config.storage import OPTIONS_PATH
 
 
 class Options:
@@ -18,7 +18,7 @@ class Options:
 
 
 class OptionsSerializer:
-    def __init__(self, jsonPath):
+    def __init__(self, jsonPath=OPTIONS_PATH):
         self._jsonPath = Path(jsonPath)
 
     def load(self):

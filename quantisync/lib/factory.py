@@ -1,10 +1,10 @@
 class NfsFactory:
     @classmethod
-    def getObservador(cls, nfsPath, picklePath):
+    def getObservador(cls, nfsPath, cloudSnapshotPath):
         from quantisync.core.estado import Cliente, Servidor, Observador
 
         cliente = Cliente(nfsPath, 'XML')
-        servidor = Servidor(picklePath)
+        servidor = Servidor(cloudSnapshotPath)
         return Observador(cliente, servidor)
 
     @classmethod
@@ -32,3 +32,22 @@ class AuthFactory:
         httpService = HttpService('sessao')
         keyringAuthStorge = cls.getKeyringStorage()
         return Auth(httpService, keyringAuthStorge)
+
+
+class SyncFactory:
+
+    def __init__(self, view):
+        self._view = view
+
+    def getDefaultSync(self):
+        from quantisync.config.storage import CLOUD_SNAPSHOT_PATH
+        from quantisync.core.options import OptionsSerializer
+        from quantisync.core.sync import Sync
+
+        # TODO - Mover delay para module apropriado
+        DELAY = 5
+        optionsSerializer = OptionsSerializer()
+        options = optionsSerializer.load()
+        nfsObservador = NfsFactory.getObservador(options.nfsPath, CLOUD_SNAPSHOT_PATH)
+        nfsHandler = NfsFactory.getHandler()
+        return Sync(self._view, nfsObservador, nfsHandler, DELAY)

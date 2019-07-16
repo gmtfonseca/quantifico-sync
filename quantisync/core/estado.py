@@ -47,11 +47,11 @@ class Servidor:
         self.carregaEstado()
 
     def carregaEstado(self):
-        pickleFile = Path(self._path)
-        if not pickleFile.exists():
+        cloudSnapshotFile = Path(self._path)
+        if not cloudSnapshotFile.exists():
             self._criaPickleVazio()
-        elif pickleFile.stat().st_size > 0:
-            with pickleFile.open('rb') as f:
+        elif cloudSnapshotFile.stat().st_size > 0:
+            with cloudSnapshotFile.open('rb') as f:
                 self._estado = pickle.load(f)
 
     def _criaPickleVazio(self):

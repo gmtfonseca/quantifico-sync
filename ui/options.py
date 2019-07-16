@@ -1,14 +1,17 @@
 import wx
+from pathlib import Path
 
-from quantisync.config.storage import APPDATA_PATH
+from quantisync.config.storage import CLOUD_SNAPSHOT_PATH
 from quantisync.core.options import OptionsSerializer
 from quantisync.core.options import Options
+from ui import globals
 
 
 class OptionsDialog(wx.Dialog):
 
     def __init__(self, parent):
         super(OptionsDialog, self).__init__(parent, title='Opções', size=(500, 250))
+        self.parent = parent
         self._initLayout()
         self._controller = OptionsController(self)
         self._controller.loadOptions()
@@ -82,11 +85,17 @@ class OptionsDialog(wx.Dialog):
 class OptionsController:
     def __init__(self, view):
         self._view = view
-        self._optionsSerializer = OptionsSerializer(APPDATA_PATH / 'options.json')
+        self._optionsSerializer = OptionsSerializer()
 
     def saveOptions(self):
+        oldOptions = self._optionsSerializer.load()
         options = Options(self._view.txtDirNfs.GetValue())
+
+        if oldOptions and oldOptions.nfsPath != options.nfsPath:
+            Path(CLOUD_SNAPSHOT_PATH).unlink()
+
         self._optionsSerializer.save(options)
+        globals.syncManager.restartSync()
 
     def loadOptions(self):
         options = self._optionsSerializer.load()
