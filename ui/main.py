@@ -6,6 +6,7 @@ from ui.thread import BackgroundThread
 from ui.events import EVT_UI
 from quantisync.lib.factory import NfsFactory
 
+# from ui.options import OptionsDialog
 
 NF_PATH = os.path.abspath('../nf')
 PICKLE_PATH = os.path.abspath('../quantisync.dat')
@@ -17,6 +18,7 @@ class MainFrame(wx.Frame):
         super(MainFrame, self).__init__(parent)
         self.Bind(EVT_UI, self.onUpdateUI)
         self.taskBarIcon = MainTaskBarIcon(self)
+
         self.backgroundThread = self._criaBackgroundThread()
         self.backgroundThread.start()
 

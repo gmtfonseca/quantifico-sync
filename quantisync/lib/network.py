@@ -27,6 +27,13 @@ class HttpService:
         self.url = url
         self.tokenStorageService = tokenStorageService
 
+    def get(self, query=''):
+        # TODO - Implementar query
+        response = requests.get(self.url + self.endpoint,
+                                headers=HttpHeaders(self.tokenStorageService.getToken()).toDict())
+        response.raise_for_status()
+        return response
+
     def post(self, json):
         response = requests.post(self.url + self.endpoint,
                                  json=json,
