@@ -68,7 +68,7 @@ class Auth:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
                 raise InvalidUser()
             else:
-                raise error
+                raise
 
     def getToken(self):
         return self._tokenStorageService.getToken()

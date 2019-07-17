@@ -11,6 +11,10 @@ from urllib3.connection import NewConnectionError
 from ui.events import UIEvent, myEVT_UI
 
 
+class InvalidOptions(Exception):
+    pass
+
+
 class Estado(Enum):
     """
     Representa o estado de um objeto Sync (Thread)
@@ -25,23 +29,27 @@ class SyncManager:
     """
     Classe que encapsula o gerenciamento de um Sync
     """
+    # TODO - Problema de thread alive
 
     def __init__(self, syncFactory):
         self._syncFactory = syncFactory
+        self._sync = None
 
     def createSync(self):
         self._sync = self._syncFactory.getDefaultSync()
 
     def startSync(self):
-        self._sync.start()
+        if self._sync and not self._sync.is_alive():
+            self._sync.start()
 
     def abortSync(self):
-        self._sync.abort()
+        if self._sync:
+            self._sync.abort()
 
     def restartSync(self):
-        self._sync.abort()
+        self.abortSync()
         self.createSync()
-        self._sync.start()
+        self.startSync()
 
 
 class Sync(Thread):

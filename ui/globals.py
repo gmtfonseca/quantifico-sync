@@ -1,7 +1,7 @@
 from quantisync.core.sync import SyncManager
 from quantisync.lib.factory import SyncFactory
 
-syncManager = {}
+syncManager = None
 
 
 def createSyncManager(view):

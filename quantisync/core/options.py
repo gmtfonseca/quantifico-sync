@@ -16,6 +16,10 @@ class Options:
         jsonDict = json.load(jsonFile)
         return cls(jsonDict['nfsPath'])
 
+    @classmethod
+    def empty(cls):
+        return cls('')
+
 
 class OptionsSerializer:
     def __init__(self, jsonPath=OPTIONS_PATH):
@@ -23,7 +27,7 @@ class OptionsSerializer:
 
     def load(self):
         if not self._jsonPath.exists():
-            return Options('')
+            return Options.empty()
 
         with self._jsonPath.open() as f:
             return Options.fromJsonFile(f)

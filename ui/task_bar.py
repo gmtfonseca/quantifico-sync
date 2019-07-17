@@ -13,7 +13,7 @@ class MainTaskBarIcon(TaskBarIcon):
     def __init__(self, frame):
         TaskBarIcon.__init__(self)
         icon = wx.Icon(icons.CLOUD.as_posix())
-        self.SetIcon(icon, 'QuantiSync')
+        self.SetIcon(icon, 'Quantifico\nAtualizado')
         self._frame = frame
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.OnClickTaskBarIcon)
 
@@ -45,7 +45,7 @@ class MainTaskBarIcon(TaskBarIcon):
             self.SetIcon(icon, 'Sincronizando...')
         elif (estado == Estado.NORMAL):
             icon = wx.Icon(icons.CLOUD.as_posix())
-            self.SetIcon(icon, 'QuantiSync')
+            self.SetIcon(icon, 'Quantifico\nAtualizado')
         elif (estado == Estado.NO_CONNECTION):
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self.SetIcon(icon, messages.CONNECTION_FAILED)
