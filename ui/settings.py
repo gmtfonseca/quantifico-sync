@@ -1,6 +1,11 @@
 import wx
 
+from quantisync.core.settings import SettingsSerializer
 from ui import globals
+
+
+def showDefault(parent):
+    return SettingsPresenter(SettingsSerializer(), SettingsDialog(parent), SettingsInteractor())
 
 
 class SettingsDialog(wx.Dialog):
@@ -85,32 +90,29 @@ class SettingsPresenter:
 
     def __init__(self, settingsSerializer, view, interactor):
         self.settingsSerializer = settingsSerializer
-        self.view = view
-        interactor.Install(self, view)
+        self._view = view
+        interactor.Install(self, self._view)
         self._initView()
-        view.start()
+        self._view.start()
 
     def _initView(self):
         self._settings = self.settingsSerializer.load()
         self._loadViewFromModel()
 
     def _loadViewFromModel(self):
-        self.view.setDirNfs(self._settings.nfsPath)
+        self._view.setDirNfs(self._settings.nfsDir)
 
     def selectDirNfs(self):
-        self.view.showDirNfsDialog()
+        self._view.showDirNfsDialog()
 
     def updateModel(self):
-        self._settings.nfsPath = self.view.getDirNfs()
+        self._settings.nfsDir = self._view.getDirNfs()
         self.settingsSerializer.save(self._settings)
         globals.syncManager.restartSync()
-        self.view.quit()
+        self._view.quit()
 
 
-class SettingsInteractor():
-    '''
-    Traduz eventos de baixo nível para uma linguagem de mais alto nível
-    '''
+class SettingsInteractor:
 
     def Install(self, presenter, view):
         self.presenter = presenter

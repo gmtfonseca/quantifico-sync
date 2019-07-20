@@ -48,9 +48,9 @@ class SyncFactory:
         settingsSerializer = SettingsSerializer()
         settings = settingsSerializer.load()
 
-        if not settings.nfsPath:
+        if not settings.nfsDir:
             raise InvalidSettings()
 
-        nfsObservador = NfsFactory.getObservador(settings.nfsPath, CLOUD_SNAPSHOT_PATH)
+        nfsObservador = NfsFactory.getObservador(settings.nfsDir, CLOUD_SNAPSHOT_PATH)
         nfsHandler = NfsFactory.getHandler()
         return Sync(self._view, nfsObservador, nfsHandler, DELAY)

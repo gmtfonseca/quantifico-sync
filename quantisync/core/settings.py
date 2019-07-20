@@ -5,8 +5,8 @@ from quantisync.config.storage import SETTINGS_PATH
 
 
 class Settings:
-    def __init__(self, nfsPath):
-        self.nfsPath = nfsPath
+    def __init__(self, nfsDir):
+        self.nfsDir = nfsDir
 
     def toDict(self):
         return vars(self)
@@ -14,7 +14,7 @@ class Settings:
     @classmethod
     def fromJsonFile(cls, jsonFile):
         jsonDict = json.load(jsonFile)
-        return cls(jsonDict['nfsPath'])
+        return cls(jsonDict['nfsDir'])
 
     @classmethod
     def empty(cls):

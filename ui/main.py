@@ -1,8 +1,7 @@
 import wx
 
 from quantisync.core.sync import InvalidSettings, Estado
-from quantisync.core.settings import SettingsSerializer
-from ui.task_bar import MainTaskBarIcon
+from ui import taskbar
 from ui.events import EVT_UI
 from ui.auth import AuthDialog
 from ui import settings
@@ -13,9 +12,8 @@ class MainFrame(wx.Frame):
     def __init__(self, parent):
         super(MainFrame, self).__init__(parent)
         self.Bind(EVT_UI, self.OnUpdate)
-        self.taskBarIcon = MainTaskBarIcon(self)
+        self.taskBarIcon = taskbar.getDefault(self)
         self.startSync()
-        settings.SettingsPresenter(SettingsSerializer(), settings.SettingsDialog(self), settings.SettingsInteractor())
 
     def startSync(self):
         try:
@@ -28,8 +26,7 @@ class MainFrame(wx.Frame):
                                    )
             dlg.ShowModal()
             dlg.Destroy()
-            # configDialog = ConfigDialog(self)
-            # configDialog.ShowModal()
+            settings.showDefault(self)
 
     def OnUpdate(self, evt):
         if evt.isFatal():
