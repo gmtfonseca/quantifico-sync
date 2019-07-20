@@ -5,7 +5,7 @@ from ui import globals
 
 class SettingsDialog(wx.Dialog):
 
-    def __init__(self, parent, title='Configurações'):
+    def __init__(self, parent, title='Quantifico'):
         super(SettingsDialog, self).__init__(parent, title=title)
         self._initLayout()
 
@@ -14,8 +14,8 @@ class SettingsDialog(wx.Dialog):
         self.btnOk = wx.Button(self, wx.ID_OK, label='OK', size=(80, 25))
         self.btnCancelar = wx.Button(self, wx.ID_CANCEL, label='Cancelar', size=(80, 25))
 
-        self._initTabGeral()
-        self._initTabConta()
+        self._initSettingsTab()
+        self._initAccountTab()
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.btnCancelar, wx.SizerFlags(0).Border(wx.RIGHT | wx.BOTTOM, 5))
@@ -28,9 +28,9 @@ class SettingsDialog(wx.Dialog):
         self.SetSizer(mainSizer)
         mainSizer.Fit(self)
 
-    def _initTabGeral(self):
+    def _initSettingsTab(self):
         panel = wx.Panel(self.notebook)
-        self.notebook.AddPage(panel, "Geral")
+        self.notebook.AddPage(panel, "Configurações")
         self.lblDirNfs = wx.StaticText(panel, label='Selecione a pasta com as Notas Fiscais')
         self.txtDirNfs = wx.TextCtrl(panel, size=(300, 25))
         self.btnConfigurar = wx.Button(panel, label="Configurar", size=(100, 25))
@@ -40,24 +40,22 @@ class SettingsDialog(wx.Dialog):
         widgetSizer.Add(self.txtDirNfs, pos=(1, 0), span=(1, 4), flag=wx.EXPAND, border=5)
         widgetSizer.Add(self.btnConfigurar, pos=(1, 4))
 
-        # TODO - Trocar para nome correto
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(widgetSizer, wx.SizerFlags(0).Border(wx.ALL, 5))
+        settingsSizer = wx.BoxSizer(wx.VERTICAL)
+        settingsSizer.Add(widgetSizer, wx.SizerFlags(0).Border(wx.ALL, 5))
 
-        panel.SetSizer(mainSizer)
+        panel.SetSizer(settingsSizer)
 
-    def _initTabConta(self):
+    def _initAccountTab(self):
         panel = wx.Panel(self.notebook)
         self.notebook.AddPage(panel, "Conta")
         self.btnDesvincular = wx.Button(panel, label="Desvincular conta", size=(150, 25))
 
-        # TODO - Trocar para nome correto
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.AddStretchSpacer()
-        mainSizer.Add(self.btnDesvincular, wx.SizerFlags(0).Border(wx.ALL, 5))
-        mainSizer.AddStretchSpacer()
+        accountSizer = wx.BoxSizer(wx.VERTICAL)
+        accountSizer.AddStretchSpacer()
+        accountSizer.Add(self.btnDesvincular, wx.SizerFlags(0).Border(wx.ALL, 5))
+        accountSizer.AddStretchSpacer()
 
-        panel.SetSizer(mainSizer)
+        panel.SetSizer(accountSizer)
 
     def showDirNfsDialog(self):
         dlg = wx.DirDialog(self, "Selecione a pasta onde estão localizadas as Notas Fiscais",
