@@ -20,18 +20,18 @@ class AuthFactory:
 
     @classmethod
     def getKeyringTokenStorage(cls):
-        from quantisync.lib.auth import KeyringTokenStorage
+        from quantisync.core.auth import KeyringTokenStorage
         from quantisync.config import auth
         return KeyringTokenStorage(auth.SERVICE_NAME)
 
     @classmethod
     def getKeyringAuth(cls):
-        from quantisync.lib.auth import Auth
+        from quantisync.core.auth import Auth
         from quantisync.lib.network import HttpService
 
         httpService = HttpService('sessao')
-        keyringAuthStorge = cls.getKeyringStorage()
-        return Auth(httpService, keyringAuthStorge)
+        keyringTokenStorage = cls.getKeyringTokenStorage()
+        return Auth(httpService, keyringTokenStorage)
 
 
 class SyncFactory:

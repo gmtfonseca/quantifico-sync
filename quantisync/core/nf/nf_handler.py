@@ -42,8 +42,11 @@ class NfInsercaoStrategy:
 
     def _enqueueNfsInseridas(self, insercoes):
         for i in insercoes:
-            nfInserida = self._setupNfInserida(i)
-            self._nfsInseridasQueue.enqueue(nfInserida.toDict())
+            try:
+                nfInserida = self._setupNfInserida(i)
+                self._nfsInseridasQueue.enqueue(nfInserida.toDict())
+            except Exception:
+                pass
 
     def _setupNfInserida(self, estado):
         propriedadesArquivo = PropriedadesArquivo.fromEstado(estado)

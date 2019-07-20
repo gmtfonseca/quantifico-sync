@@ -1,19 +1,22 @@
 import wx
 
-from quantisync.config.storage import CLOUD_SNAPSHOT_PATH
 from quantisync.core.options import OptionsSerializer
 from quantisync.core.options import Options
+from quantisync.lib.factory import AuthFactory
 from ui import globals
 
+# TODO - Renomear para config / Desacoplar view
 
-class OptionsDialog(wx.Dialog):
+
+class ConfigDialog(wx.Dialog):
 
     def __init__(self, parent):
-        super(OptionsDialog, self).__init__(parent, title='Opções')
+        super(ConfigDialog, self).__init__(parent, title='Configurações')
         self.parent = parent
         self._initLayout()
-        self._controller = OptionsController(self)
-        self._controller.loadOptions()
+        self._optionsController = OptionsController(self)
+        self._optionsController.loadOptions()
+        self._accountController = AccountController(AuthFactory.getKeyringAuth())
         self.Show()
         self.CenterOnScreen()
 
@@ -65,6 +68,14 @@ class OptionsDialog(wx.Dialog):
     def _initTabConta(self, notebook):
         panel = wx.Panel(notebook)
         notebook.AddPage(panel, "Conta")
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.AddStretchSpacer()
+        btnDesvincular = wx.Button(panel, label="Desnvincular conta", size=(150, 25))
+        mainSizer.Add(btnDesvincular, wx.SizerFlags(0).Border(wx.ALL, 5))
+        mainSizer.AddStretchSpacer()
+        panel.SetSizer(mainSizer)
+
+        self.Bind(wx.EVT_BUTTON, self.OnDesvincular, btnDesvincular)
 
     def OnConfigurar(self, evt):
         dlg = wx.DirDialog(self, "Selecione a pasta onde estão localizadas as Notas Fiscais",
@@ -76,8 +87,13 @@ class OptionsDialog(wx.Dialog):
 
         dlg.Destroy()
 
+    def OnDesvincular(self, evt):
+        dlg = wx.MessageDialog(self, 'Realmente deseja desvincular este computador?', 'Quantifico', style=wx.YES_NO)
+        if dlg.ShowModal() == wx.ID_YES:
+            self._accountController.unlinkAccount()
+
     def OnOk(self, evt):
-        self._controller.saveOptions()
+        self._optionsController.saveOptions()
         self.Destroy()
 
 
@@ -87,15 +103,18 @@ class OptionsController:
         self._optionsSerializer = OptionsSerializer()
 
     def saveOptions(self):
-        oldOptions = self._optionsSerializer.load()
         options = Options(self._view.txtDirNfs.GetValue())
-
-        if oldOptions and oldOptions.nfsPath != options.nfsPath and CLOUD_SNAPSHOT_PATH.exists():
-            CLOUD_SNAPSHOT_PATH.unlink()
-
         self._optionsSerializer.save(options)
         globals.syncManager.restartSync()
 
     def loadOptions(self):
         options = self._optionsSerializer.load()
         self._view.txtDirNfs.SetValue(options.nfsPath)
+
+
+class AccountController:
+    def __init__(self, auth):
+        self._auth = auth
+
+    def unlinkAccount(self):
+        self._auth.signout()

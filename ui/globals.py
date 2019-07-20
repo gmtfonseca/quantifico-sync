@@ -7,4 +7,3 @@ syncManager = None
 def createSyncManager(view):
     global syncManager
     syncManager = SyncManager(SyncFactory(view))
-    syncManager.createSync()

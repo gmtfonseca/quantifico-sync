@@ -4,7 +4,7 @@ from wx.adv import TaskBarIcon
 import wx
 
 from quantisync.core.sync import Estado
-from ui.options import OptionsDialog
+from ui.config import ConfigDialog
 from ui.assets import icons, messages
 from ui import globals
 
@@ -28,7 +28,7 @@ class MainTaskBarIcon(TaskBarIcon):
         return menu
 
     def OnConfiguracoes(self, event):
-        self.configuracoesFrame = OptionsDialog(self._frame)
+        self.configuracoesFrame = ConfigDialog(self._frame)
         self.configuracoesFrame.Show()
 
     def OnClickTaskBarIcon(self, evt):
@@ -42,7 +42,7 @@ class MainTaskBarIcon(TaskBarIcon):
     def updateView(self, estado):
         if (estado == Estado.SYNCING):
             icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
-            self.SetIcon(icon, 'Sincronizando...')
+            self.SetIcon(icon, 'Quantifico\nSincronizando...')
         elif (estado == Estado.NORMAL):
             icon = wx.Icon(icons.CLOUD.as_posix())
             self.SetIcon(icon, 'Quantifico\nAtualizado')

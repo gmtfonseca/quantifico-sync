@@ -14,7 +14,7 @@ class PropriedadesArquivo:
         """
         nomeDataModificacaoSegundos = estado.split('/')
         nome = nomeDataModificacaoSegundos[0]
-        dataModificacaoSegundos = float(nomeDataModificacaoSegundos[1])
+        dataModificacaoSegundos = nomeDataModificacaoSegundos[1]
         return cls(nome, dataModificacaoSegundos)
 
     def getEstado(self):

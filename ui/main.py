@@ -1,12 +1,11 @@
 import wx
 
-from quantisync.core.sync import InvalidOptions
+from quantisync.core.sync import InvalidOptions, Estado
 from ui.task_bar import MainTaskBarIcon
 from ui.events import EVT_UI
-from ui.options import OptionsDialog
+from ui.auth import AuthDialog
+from ui.config import ConfigDialog
 from ui import globals
-# Teste
-# from ui.auth import AuthDialog
 
 
 class MainFrame(wx.Frame):
@@ -22,16 +21,21 @@ class MainFrame(wx.Frame):
             globals.syncManager.startSync()
         except InvalidOptions:
             dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
-                                   'QuantiSync',
+                                   'Quantifico',
                                    wx.OK | wx.ICON_INFORMATION
                                    )
             dlg.ShowModal()
             dlg.Destroy()
-            optionsDialog = OptionsDialog(self)
-            optionsDialog.ShowModal()
+            configDialog = ConfigDialog(self)
+            configDialog.ShowModal()
 
     def OnUpdate(self, evt):
         if evt.isFatal():
             globals.syncManager.abortSync()
 
-        self.taskBarIcon.updateView(evt.getEstado())
+        estadoSync = evt.getEstado()
+        self.taskBarIcon.updateView(estadoSync)
+
+        if estadoSync == Estado.UNAUTHORIZED:
+            authDialog = AuthDialog(self)
+            authDialog.ShowModal()

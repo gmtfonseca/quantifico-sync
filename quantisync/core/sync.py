@@ -29,18 +29,14 @@ class SyncManager:
     """
     Classe que encapsula o gerenciamento de um Sync
     """
-    # TODO - Problema de thread alive
 
     def __init__(self, syncFactory):
         self._syncFactory = syncFactory
         self._sync = None
 
-    def createSync(self):
-        self._sync = self._syncFactory.getDefaultSync()
-
     def startSync(self):
-        if self._sync and not self._sync.is_alive():
-            self._sync.start()
+        self._sync = self._syncFactory.getDefaultSync()
+        self._sync.start()
 
     def abortSync(self):
         if self._sync:
@@ -48,7 +44,6 @@ class SyncManager:
 
     def restartSync(self):
         self.abortSync()
-        self.createSync()
         self.startSync()
 
 

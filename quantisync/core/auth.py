@@ -59,11 +59,11 @@ class Auth:
 
     def _requestToken(self, email, senha):
         try:
-            token = self._httpService.post({
+            response = self._httpService.post({
                 'email': email,
                 'senha': senha
             })
-            return token
+            return response.json()['token']
         except HTTPError as error:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
                 raise InvalidUser()
