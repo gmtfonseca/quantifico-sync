@@ -11,7 +11,7 @@ from urllib3.connection import NewConnectionError
 from ui.events import UIEvent, myEVT_UI
 
 
-class InvalidOptions(Exception):
+class InvalidSettings(Exception):
     pass
 
 

@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from quantisync.config.storage import OPTIONS_PATH
+from quantisync.config.storage import SETTINGS_PATH
 
 
-class Options:
+class Settings:
     def __init__(self, nfsPath):
         self.nfsPath = nfsPath
 
@@ -21,20 +21,20 @@ class Options:
         return cls('')
 
 
-class OptionsSerializer:
-    def __init__(self, jsonPath=OPTIONS_PATH):
+class SettingsSerializer:
+    def __init__(self, jsonPath=SETTINGS_PATH):
         self._jsonPath = Path(jsonPath)
 
     def load(self):
         if not self._jsonPath.exists():
-            return Options.empty()
+            return Settings.empty()
 
         with self._jsonPath.open() as f:
-            return Options.fromJsonFile(f)
+            return Settings.fromJsonFile(f)
 
-    def save(self, options):
+    def save(self, settings):
         if not self._jsonPath.parent.exists():
             self._jsonPath.parent.mkdir(parents=True, exist_ok=True)
 
         with self._jsonPath.open('w') as f:
-            json.dump(options.toDict(), f)
+            json.dump(settings.toDict(), f)

@@ -4,7 +4,7 @@ from wx.adv import TaskBarIcon
 import wx
 
 from quantisync.core.sync import Estado
-from ui.config import ConfigDialog
+from ui.settings import SettingsDialog
 from ui.assets import icons, messages
 from ui import globals
 
@@ -28,7 +28,7 @@ class MainTaskBarIcon(TaskBarIcon):
         return menu
 
     def OnConfiguracoes(self, event):
-        self.configuracoesFrame = ConfigDialog(self._frame)
+        self.configuracoesFrame = SettingsDialog(self._frame)
         self.configuracoesFrame.Show()
 
     def OnClickTaskBarIcon(self, evt):

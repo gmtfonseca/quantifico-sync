@@ -41,16 +41,16 @@ class SyncFactory:
 
     def getDefaultSync(self):
         from quantisync.config.storage import CLOUD_SNAPSHOT_PATH
-        from quantisync.core.options import OptionsSerializer
-        from quantisync.core.sync import Sync, InvalidOptions
+        from quantisync.core.settings import SettingsSerializer
+        from quantisync.core.sync import Sync, InvalidSettings
 
         DELAY = 5
-        optionsSerializer = OptionsSerializer()
-        options = optionsSerializer.load()
+        settingsSerializer = SettingsSerializer()
+        settings = settingsSerializer.load()
 
-        if not options.nfsPath:
-            raise InvalidOptions()
+        if not settings.nfsPath:
+            raise InvalidSettings()
 
-        nfsObservador = NfsFactory.getObservador(options.nfsPath, CLOUD_SNAPSHOT_PATH)
+        nfsObservador = NfsFactory.getObservador(settings.nfsPath, CLOUD_SNAPSHOT_PATH)
         nfsHandler = NfsFactory.getHandler()
         return Sync(self._view, nfsObservador, nfsHandler, DELAY)
