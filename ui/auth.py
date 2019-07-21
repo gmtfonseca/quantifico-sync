@@ -8,7 +8,7 @@ from quantisync.lib.factory import AuthFactory
 from quantisync.core.auth import InvalidUser
 
 
-def showDefault(parent):
+def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
     return AuthPresenter(AuthFactory.getKeyringAuth(),
                          AuthDialog(parent, 'Quantifico', icon=icon),

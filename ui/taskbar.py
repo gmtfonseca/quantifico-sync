@@ -10,7 +10,7 @@ from ui import settings
 from ui import globals
 
 
-def getDefault(frame):
+def create(frame):
     return TaskBarPresenter(SettingsSerializer(),
                             TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'Quantifico\nAtualizado'),
                             TaskBarInteractor())
@@ -47,7 +47,7 @@ class TaskBarPresenter:
         interactor.Install(self, self._view)
 
     def showSettings(self):
-        settings.showDefault(self._view.getFrame())
+        settings.show(self._view.getFrame())
 
     def showPopupMenu(self):
         self._view.PopupMenu(self._view.popupMenu)

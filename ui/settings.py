@@ -5,7 +5,7 @@ from quantisync.lib.factory import AuthFactory
 from ui import globals
 
 
-def showDefault(parent):
+def show(parent):
     return SettingsPresenter(SettingsSerializer(),
                              AuthFactory.getKeyringAuth(),
                              SettingsDialog(parent),

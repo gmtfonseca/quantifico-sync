@@ -20,7 +20,7 @@ class MainFrame(wx.Frame):
 
     def __init__(self):
         super(MainFrame, self).__init__(None)
-        self._taskBarIcon = taskbar.getDefault(self)
+        self._taskBarIcon = taskbar.create(self)
 
     def getTaskBarIcon(self):
         return self._taskBarIcon
@@ -43,7 +43,7 @@ class MainPresenter:
                                    )
             dlg.ShowModal()
             dlg.Destroy()
-            settings.showDefault(self)
+            settings.show(self)
 
     def updateSyncApp(self, evt):
         if evt.isFatal():
@@ -55,7 +55,7 @@ class MainPresenter:
 
     def handleUnauthorized(self, syncState):
         if syncState == Estado.UNAUTHORIZED:
-            auth.showDefault(self)
+            auth.show(self)
 
     def updateTaskBarIcon(self, syncState):
         self._view.getTaskBarIcon().updateView(syncState)
