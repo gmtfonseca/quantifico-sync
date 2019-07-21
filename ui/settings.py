@@ -1,11 +1,15 @@
 import wx
 
 from quantisync.core.settings import SettingsSerializer
+from quantisync.lib.factory import AuthFactory
 from ui import globals
 
 
 def showDefault(parent):
-    return SettingsPresenter(SettingsSerializer(), SettingsDialog(parent), SettingsInteractor())
+    return SettingsPresenter(SettingsSerializer(),
+                             AuthFactory.getKeyringAuth(),
+                             SettingsDialog(parent),
+                             SettingsInteractor())
 
 
 class SettingsDialog(wx.Dialog):
@@ -53,11 +57,11 @@ class SettingsDialog(wx.Dialog):
     def _initAccountTab(self):
         panel = wx.Panel(self.notebook)
         self.notebook.AddPage(panel, "Conta")
-        self.btnDesvincular = wx.Button(panel, label="Desvincular conta", size=(150, 25))
+        self.btnUnlinkAccount = wx.Button(panel, label="Desvincular conta", size=(150, 25))
 
         accountSizer = wx.BoxSizer(wx.VERTICAL)
         accountSizer.AddStretchSpacer()
-        accountSizer.Add(self.btnDesvincular, wx.SizerFlags(0).Border(wx.ALL, 5))
+        accountSizer.Add(self.btnUnlinkAccount, wx.SizerFlags(0).Border(wx.ALL, 5))
         accountSizer.AddStretchSpacer()
 
         panel.SetSizer(accountSizer)
@@ -71,6 +75,12 @@ class SettingsDialog(wx.Dialog):
             self.setDirNfs(dlg.GetPath())
 
         dlg.Destroy()
+
+    def showUnlinkAccountDialog(self):
+        dlg = wx.MessageDialog(self, 'Realmente deseja desvincular este computador?', 'Quantifico', style=wx.YES_NO)
+        confirm = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        return confirm
 
     def getDirNfs(self):
         return self.txtDirNfs.GetValue()
@@ -88,15 +98,16 @@ class SettingsDialog(wx.Dialog):
 
 class SettingsPresenter:
 
-    def __init__(self, settingsSerializer, view, interactor):
-        self.settingsSerializer = settingsSerializer
+    def __init__(self, settingsSerializer, auth, view, interactor):
+        self._settingsSerializer = settingsSerializer
+        self._auth = auth
         self._view = view
         interactor.Install(self, self._view)
         self._initView()
         self._view.start()
 
     def _initView(self):
-        self._settings = self.settingsSerializer.load()
+        self._settings = self._settingsSerializer.load()
         self._loadViewFromModel()
 
     def _loadViewFromModel(self):
@@ -107,9 +118,14 @@ class SettingsPresenter:
 
     def updateModel(self):
         self._settings.nfsDir = self._view.getDirNfs()
-        self.settingsSerializer.save(self._settings)
+        self._settingsSerializer.save(self._settings)
         globals.syncManager.restartSync()
         self._view.quit()
+
+    def unlinkAccount(self):
+        confirm = self._view.showUnlinkAccountDialog()
+        if confirm:
+            self._auth.signout()
 
 
 class SettingsInteractor:
@@ -120,9 +136,13 @@ class SettingsInteractor:
 
         self._view.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
         self._view.btnConfigurar.Bind(wx.EVT_BUTTON, self.OnConfigurar)
+        self._view.btnUnlinkAccount.Bind(wx.EVT_BUTTON, self.OnUnlinkAccount)
 
     def OnOk(self, evt):
         self._presenter.updateModel()
 
     def OnConfigurar(self, evt):
         self._presenter.selectDirNfs()
+
+    def OnUnlinkAccount(self, evt):
+        self._presenter.unlinkAccount()

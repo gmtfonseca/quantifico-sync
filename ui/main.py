@@ -3,7 +3,7 @@ import wx
 from quantisync.core.sync import InvalidSettings, Estado
 from ui import taskbar
 from ui.events import EVT_SYNC
-from ui.auth import AuthDialog
+from ui import auth
 from ui import settings
 from ui import globals
 
@@ -55,8 +55,7 @@ class MainPresenter:
 
     def handleUnauthorized(self, syncState):
         if syncState == Estado.UNAUTHORIZED:
-            authDialog = AuthDialog(self)
-            authDialog.ShowModal()
+            auth.showDefault(self)
 
     def updateTaskBarIcon(self, syncState):
         self._view.getTaskBarIcon().updateView(syncState)
