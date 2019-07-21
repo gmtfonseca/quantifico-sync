@@ -1,17 +1,17 @@
 import wx
 
-myEVT_UI = wx.NewEventType()
-EVT_UI = wx.PyEventBinder(myEVT_UI, 1)
+myEVT_SYNC = wx.NewEventType()
+EVT_SYNC = wx.PyEventBinder(myEVT_SYNC, 1)
 
 
-class UIEvent(wx.PyCommandEvent):
-    def __init__(self, type, id, estado, isFatal):
+class SyncEvent(wx.PyCommandEvent):
+    def __init__(self, type, id, state, isFatal):
         wx.PyCommandEvent.__init__(self, type, id)
-        self._estado = estado
+        self._state = state
         self._isFatal = isFatal
 
-    def getEstado(self):
-        return self._estado
+    def getState(self):
+        return self._state
 
     def isFatal(self):
         return self._isFatal

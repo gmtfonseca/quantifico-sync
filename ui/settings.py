@@ -115,14 +115,14 @@ class SettingsPresenter:
 class SettingsInteractor:
 
     def Install(self, presenter, view):
-        self.presenter = presenter
-        self.view = view
+        self._presenter = presenter
+        self._view = view
 
-        view.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
-        view.btnConfigurar.Bind(wx.EVT_BUTTON, self.OnConfigurar)
+        self._view.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
+        self._view.btnConfigurar.Bind(wx.EVT_BUTTON, self.OnConfigurar)
 
     def OnOk(self, evt):
-        self.presenter.updateModel()
+        self._presenter.updateModel()
 
     def OnConfigurar(self, evt):
-        self.presenter.selectDirNfs()
+        self._presenter.selectDirNfs()

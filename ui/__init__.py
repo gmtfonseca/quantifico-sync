@@ -2,13 +2,12 @@ import logging
 
 import wx
 
-from ui.main import MainFrame
+from ui import main
 
 
 def run():
     logging.basicConfig(level=logging.DEBUG)
 
     app = wx.App()
-
-    MainFrame(None)
+    main.start()
     app.MainLoop()

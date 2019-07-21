@@ -78,22 +78,22 @@ class TaskBarPresenter:
 class TaskBarInteractor:
 
     def Install(self, presenter, view):
-        self.presenter = presenter
-        self.view = view
+        self._presenter = presenter
+        self._view = view
 
-        view.Bind(wx.adv.EVT_TASKBAR_RIGHT_UP, self.OnRightClickTaskBarIcon)
-        view.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.OnLeftClickTaskBarIcon)
-        view.popupMenu.Bind(wx.EVT_MENU, self.OnConfiguracoes, view.menuItemSettings)
-        view.popupMenu.Bind(wx.EVT_MENU, self.OnSair, view.menuItemExit)
+        self._view.Bind(wx.adv.EVT_TASKBAR_RIGHT_UP, self.OnRightClickTaskBarIcon)
+        self._view.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.OnLeftClickTaskBarIcon)
+        self._view.popupMenu.Bind(wx.EVT_MENU, self.OnSettings, self._view.menuItemSettings)
+        self._view.popupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
 
     def OnRightClickTaskBarIcon(self, evt):
-        self.presenter.showPopupMenu()
+        self._presenter.showPopupMenu()
 
     def OnLeftClickTaskBarIcon(self, evt):
-        self.presenter.openSyncFolder()
+        self._presenter.openSyncFolder()
 
-    def OnConfiguracoes(self, evt):
-        self.presenter.showSettings()
+    def OnSettings(self, evt):
+        self._presenter.showSettings()
 
-    def OnSair(self, evt):
-        self.presenter.quit()
+    def OnExit(self, evt):
+        self._presenter.quit()

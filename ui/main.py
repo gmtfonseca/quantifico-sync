@@ -2,17 +2,34 @@ import wx
 
 from quantisync.core.sync import InvalidSettings, Estado
 from ui import taskbar
-from ui.events import EVT_UI
+from ui.events import EVT_SYNC
 from ui.auth import AuthDialog
 from ui import settings
 from ui import globals
 
 
+def start():
+    return MainPresenter(MainFrame(), MainInteractor())
+
+
 class MainFrame(wx.Frame):
-    def __init__(self, parent):
-        super(MainFrame, self).__init__(parent)
-        self.Bind(EVT_UI, self.OnUpdate)
-        self.taskBarIcon = taskbar.getDefault(self)
+    '''
+    Frame principal responsável pelo TaskBarIcon,
+    não possui GUI
+    '''
+
+    def __init__(self):
+        super(MainFrame, self).__init__(None)
+        self._taskBarIcon = taskbar.getDefault(self)
+
+    def getTaskBarIcon(self):
+        return self._taskBarIcon
+
+
+class MainPresenter:
+    def __init__(self, view, interactor):
+        self._view = view
+        interactor.Install(self, self._view)
         self.startSync()
 
     def startSync(self):
@@ -28,13 +45,29 @@ class MainFrame(wx.Frame):
             dlg.Destroy()
             settings.showDefault(self)
 
-    def OnUpdate(self, evt):
+    def updateSyncApp(self, evt):
         if evt.isFatal():
             globals.syncManager.abortSync()
 
-        estadoSync = evt.getEstado()
-        self.taskBarIcon.updateView(estadoSync)
+        syncState = evt.getState()
+        self.updateTaskBarIcon(syncState)
+        self.handleUnauthorized(syncState)
 
-        if estadoSync == Estado.UNAUTHORIZED:
+    def handleUnauthorized(self, syncState):
+        if syncState == Estado.UNAUTHORIZED:
             authDialog = AuthDialog(self)
             authDialog.ShowModal()
+
+    def updateTaskBarIcon(self, syncState):
+        self._view.getTaskBarIcon().updateView(syncState)
+
+
+class MainInteractor:
+    def Install(self, presenter, view):
+        self._presenter = presenter
+        self._view = view
+
+        self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
+
+    def OnUpdateSyncState(self, evt):
+        self._presenter.updateSyncApp(evt)

@@ -8,7 +8,7 @@ from http import HTTPStatus
 from requests.exceptions import ConnectionError, HTTPError
 from urllib3.connection import NewConnectionError
 
-from ui.events import UIEvent, myEVT_UI
+from ui.events import EVT_SYNC, myEVT_SYNC
 
 
 class InvalidSettings(Exception):
@@ -105,5 +105,5 @@ class Sync(Thread):
                                 self._observador.getRemocoes())
 
     def _propagaEstadoView(self, estado, isFatal=False):
-        evt = UIEvent(myEVT_UI, -1, estado, isFatal)
+        evt = EVT_SYNC(myEVT_SYNC, -1, estado, isFatal)
         wx.PostEvent(self._view, evt)
