@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import glob
 
 class File:
 
@@ -23,12 +23,18 @@ class File:
 
     def path(self):
         return str(self._path)
+    
+    def unlink(self):
+        return self._path.unlink()
 
 
 class Dir:
 
     def __init__(self, path):
         self._path = Path(path)
-
+    
     def files(self, extension):
-        return self._path.glob('*.{}'.format(extension))
+        if self._path.exists():
+            return glob.glob('{}/*.{}'.format(str(self._path), extension))                    
+        else:
+            return []

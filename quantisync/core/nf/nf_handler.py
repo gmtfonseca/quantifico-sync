@@ -5,60 +5,67 @@ from http import HTTPStatus
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
 from quantisync.core.file import Properties
-from quantisync.core.nf.nf_parser import NfParser
-from quantisync.core.nf.nf import Nf
+from quantisync.core.nf.nf_parser import NfParser, InvalidXml
+from quantisync.core.nf.nf import Nf, InvalidNf
 
 
 class NfHandler():
+    '''
+    Responsável em realizar ações em cima de mudanças de estado entre Cliente e Servidor
+    '''
     def __init__(self, httpService):
         self._httpService = httpService
 
-    def onInsercao(self, cliente, servidor, insercoes):
-        nfInsercaoStrategy = NfInsercaoStrategy(self._httpService,
-                                                cliente,
-                                                servidor)
-        nfInsercaoStrategy.inserir(insercoes)
+    def onInsert(self, localFolder, cloudFolder, insertions):
+        nfInsertionStrategy = NfInsertionStrategy(self._httpService,
+                                                localFolder,
+                                                cloudFolder)
+        nfInsertionStrategy.insert(insertions)
 
-    def onRemocao(self, servidor, remocoes):
-        nfRemocaoStrategy = NfRemocaoStrategy(self._httpService,
-                                              servidor)
-        nfRemocaoStrategy.remover(remocoes)
+    def onDelete(self, cloudFolder, deletions):
+        nfDeletionStrategy = NfDeletionStrategy(self._httpService,
+                                              cloudFolder)
+        nfDeletionStrategy.delete(deletions)
 
 
-class NfInsercaoStrategy:
-    """
-    Classe responsável pela lógica de inserção de Nf no Cliente"
-    """
+class NfInsertionStrategy:
 
-    def __init__(self, httpService, cliente, servidor):
-        self._cliente = cliente
-        self._servidor = servidor
-        self._nfsInseridasQueue = HttpStreamQueue(httpService,
+    def __init__(self, httpService, localFolder, cloudFolder):
+        self._localFolder = localFolder
+        self._cloudFolder = cloudFolder
+        self._insertedNfsQueue = HttpStreamQueue(httpService,
                                                   self._streamGenerator)
 
-    def inserir(self, insercoes):
-        self._enqueueNfsInseridas(insercoes)
-        self._dequeueNfsInseridas()
+    def insert(self, insertions):
+        self._enqueueInsertedNfs(insertions)
+        self._dequeueInsertedNfs()
 
-    def _enqueueNfsInseridas(self, insercoes):
-        for i in insercoes:
+    def _enqueueInsertedNfs(self, insertions):
+        for i in insertions:
             try:
-                nfInserida = self._setupNfInserida(i)
-                self._nfsInseridasQueue.enqueue(nfInserida.toDict())
+                insertedNf = self._setupInsertedNf(i)
+                self._insertedNfsQueue.enqueue(insertedNf.toDict())
+            except (InvalidNf, InvalidXml) as e:                
+                self._localFolder.addInvalidFile(e.filePath)
             except Exception:
                 pass
 
-    def _setupNfInserida(self, estado):
-        propriedadesArquivo = Properties.fromState(estado)
-        pathXml = os.path.join(self._cliente.getPath(),
-                               '{}.{}'.format(propriedadesArquivo.name,
-                                              self._cliente.getExtension()))
-        conteudoNf = NfParser.parse(pathXml)
-        nf = Nf(propriedadesArquivo, conteudoNf)
-        return nf
+    def _setupInsertedNf(self, state):                
+        try:
+            fileProperties = Properties.fromState(state)
+            filePath = os.path.join(self._localFolder.getPath(),
+                                    '{}.{}'.format(fileProperties.name,
+                                                    self._localFolder.getExtension()))
+            nfContent = NfParser.parse(filePath)
+            nf = Nf(fileProperties, nfContent)
+            return nf
+        except InvalidNf:
+            raise InvalidNf(filePath)
+        except InvalidXml:
+            raise InvalidXml(filePath)                  
 
-    def _dequeueNfsInseridas(self):
-        self._nfsInseridasQueue.dequeue(self._postBatchHandler)
+    def _dequeueInsertedNfs(self):
+        self._insertedNfsQueue.dequeue(self._postBatchHandler)
 
     def _streamGenerator(self, nfs):
         for nf in nfs:
@@ -66,30 +73,27 @@ class NfInsercaoStrategy:
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
-            self._servidor.setSnapshot(response.json())
+            self._cloudFolder.setSnapshot(response.json())
 
 
-class NfRemocaoStrategy:
-    """
-    Classe responsável pela lógica de remoção de Nf no Cliente"
-    """
+class NfDeletionStrategy:
 
-    def __init__(self, httpService, servidor):
-        self._servidor = servidor
-        self._nfsRemovidasQueue = HttpDeleteQueue(httpService)
+    def __init__(self, httpService, cloudFolder):
+        self._cloudFolder = cloudFolder
+        self._deletedNfsQueue = HttpDeleteQueue(httpService)
 
-    def remover(self, remocoes):
-        self._enqueueNfsRemovidas(remocoes)
-        self._dequeueNfsRemovidas()
+    def delete(self, deletions):
+        self._enqueueDeletedNfs(deletions)
+        self._dequeueDeletedNfs()
 
-    def _enqueueNfsRemovidas(self, remocoes):
-        for r in remocoes:
-            nomeArquivoNfRemovida = Properties.fromState(r).nome
-            self._nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
+    def _enqueueDeletedNfs(self, deletions):
+        for d in deletions:
+            deletedNf = Properties.fromState(d)
+            self._deletedNfsQueue.enqueue(deletedNf.name)
 
-    def _dequeueNfsRemovidas(self):
-        self._nfsRemovidasQueue.dequeue(self._postBatchHandler)
+    def _dequeueDeletedNfs(self):
+        self._deletedNfsQueue.dequeue(self._postBatchHandler)
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
-            self._servidor.setSnapshot(response.json())
+            self._cloudFolder.setSnapshot(response.json())

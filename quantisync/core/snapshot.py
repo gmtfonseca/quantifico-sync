@@ -4,37 +4,34 @@ from quantisync.core.file import Properties
 from quantisync.lib.util import File, Dir
 
 
-class Client:
+class LocalFolder:
+    '''
+    Representa uma pasta local com arquivos
+    '''
 
-    """
-    É uma pasta que contém um conjunto de propriedades de arquivos
-    que determinam o estado do cliente
-    """
-
-    def __init__(self, path, extension, invalid):
+    def __init__(self, path, extension, invalidFolder):
         self._path = path
         self._extension = extension
-        self._invalid = invalid
+        self._invalidFolder = invalidFolder
+        self._snapshot = set()
 
-    def load(self):
+    def refresh(self):
         files = Dir(self._path).files(self._extension)
         self._snapshot = {Properties(File(f).baseName(),
                                      File(f).modified()).getState()
-                          for f in files}
-        self._snapshot = self._snapshot - self.getInvalidSnapshot()
+                          for f in files}        
 
     def addInvalidFile(self, path):
-        self._invalid.add(path)
+        self._invalidFolder.add(path)
 
     def removeInvalidFile(self, fileName):
-        self._invalid.remove(fileName)
+        self._invalidFolder.remove(fileName)
 
     def getSnapshot(self):
-        return self._snapshot
-
-    def getInvalidSnapshot(self):
-        self._invalid.load()
-        return self._invalid.getSnapshot()
+        return self._snapshot - self.getInvalidSnapshot()
+        
+    def getInvalidSnapshot(self):        
+        return self._invalidFolder.getSnapshot()
 
     def getPath(self):
         return self._path
@@ -43,109 +40,102 @@ class Client:
         return self._extension
 
 
-class Server:
-    """
-    É um pickle que caracteriza o estado do servidor
-    """
+class SerializableFolder:
+    '''
+    Representa um folder que pode ser gravado em disco
+    '''
 
     def __init__(self, path):
-        self._path = path
-        self.load()
+        self._path = path        
+    
+    def initialize(self, emptyObject):
+        filePath = File(self._path)
+        if not filePath.exists():            
+            self.saveToDisk(emptyObject)
+        
+        return self.loadFromDisk()
 
-    def load(self):
-        snapshotFile = File(self._path)
-        if not snapshotFile.exists():
-            self._snapshot = set()
-            self._saveToDisk()
-        else:
-            if snapshotFile.size() > 0:
-                self._loadFromDisk()
-            else:
-                self._snapshot = set()
-
-    def _saveToDisk(self):
+    def saveToDisk(self, object):
         with open(self._path, "wb") as f:
-            pickle.dump(self._snapshot, f, pickle.HIGHEST_PROTOCOL)
-
-    def _loadFromDisk(self):
-        with open(self._path, 'rb') as f:
-            self._snapshot = pickle.load(f)
-
-    def setSnapshot(self, snapshot):
-        self._snapshot = set(snapshot)
-        self._saveToDisk()
-
-    def getSnapshot(self):
-        return self._snapshot
+            pickle.dump(object, f, pickle.HIGHEST_PROTOCOL)
+    
+    def loadFromDisk(self):
+        objectFile = File(self._path)
+        if objectFile.size() > 0:            
+            with open(self._path, 'rb') as f:
+                return pickle.load(f)        
 
     def getPath(self):
         return self._path
 
 
-class Invalid:
+class CloudFolder(SerializableFolder):
     '''
-    Dicionário que representa arquivos considerados inválidos
+    Set que representa o estado atual dos arquivos na nuvem
     '''
 
     def __init__(self, path):
-        self._path = path
+        super().__init__(path)
+        self._snapshot = self.initialize(set())
 
-    def load(self):
-        snapshotFile = File(self._path)
-        if not snapshotFile.exists():
-            self._snapshot = {}
-            self._saveToDisk()
-        else:
-            if snapshotFile.size() > 0:
-                self._loadFromDisk()
-            else:
-                self._snapshot = {}
+    def setSnapshot(self, snapshot):
+        self._snapshot = set(snapshot)
+        self.saveToDisk(self._snapshot)
+
+    def getSnapshot(self):
+        return self._snapshot
+
+
+class InvalidFolder(SerializableFolder):
+    '''
+    Dicionário que representa arquivos considerados inválidos
+    Sua chave é o nome completo do arquivo, já como valor possui seu estado
+    '''
+
+    def __init__(self, path):
+        super().__init__(path)
+        self._files = self.initialize(dict())
 
     def add(self, path):
         invalidFile = File(path)
         if invalidFile.exists():
-            key = invalidFile.name()
+            fileName = invalidFile.name()
             fileProperties = Properties(invalidFile.baseName(), invalidFile.modified())
-            self._snapshot[key] = fileProperties.getState()
-            self._saveToDisk()
+            self._files[fileName] = fileProperties.getState()
+            self.saveToDisk(self._files)
 
     def remove(self, key):
-        self._snapshot.pop(key)
-        self._saveToDisk()
-
-    def _saveToDisk(self):
-        with open(self._path, "wb") as f:
-            pickle.dump(self._snapshot, f, pickle.HIGHEST_PROTOCOL)
-
-    def _loadFromDisk(self):
-        with open(self._path, 'rb') as f:
-            self._snapshot = pickle.load(f)
+        self._files.pop(key)
+        self.saveToDisk(self._files) 
 
     def getSnapshot(self):
-        return set(self._snapshot.values())
+        if self._files:
+            return set(self._files.values())
+        else:
+            return set()
 
 
-class Observer:
-    """
-    Detecta mudanças de estado entre Cliente e Servidor
-    """
+class Observer:    
+    '''
+    Responsável em detectar mudanças entre pasta local e pasta na nuvem
+    '''
 
-    def __init__(self, client, server):
-        self._client = client
-        self._server = server
-        self._insertions = {}
-        self._deletions = {}
+    def __init__(self, localFolder, cloudFolder):
+        self._localFolder = localFolder
+        self._cloudFolder = cloudFolder
+        self._insertions = set()
+        self._deletions = set()
 
     def observe(self):
-        self._client.load()
-        self._observeInsertions()
-        self._observeDeletions()
+        self._localFolder.refresh()
+        self._updateInsertions()
+        self._updateDeletions()
 
-    def _observeInsertions(self):
-        self._insertions = self._client.getSnapshot() - self._server.getSnapshot()
+    def _updateInsertions(self):
+        self._insertions = self._localFolder.getSnapshot() - self._cloudFolder.getSnapshot()
 
-    def _observeDeletions(self):
-        self._deletions = self._server.getSnapshot() - self._client.getSnapshot()
+    def _updateDeletions(self):
+        self._deletions = self._cloudFolder.getSnapshot() - self._localFolder.getSnapshot()
 
     def hasChanged(self):
         return self.hasInsertions() or self.hasDeletions()
@@ -161,3 +151,9 @@ class Observer:
 
     def getDeletions(self):
         return self._deletions
+
+    def getLocalFolder(self):
+        return self._localFolder
+    
+    def getCloudFolder(self):
+        return self._cloudFolder

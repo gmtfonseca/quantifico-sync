@@ -1,12 +1,12 @@
 class NfsFactory:
     @classmethod
-    def getObserver(cls, nfsPath, serverSnapshotPath, invalidSnapshotPath):
-        from quantisync.core.snapshot import Client, Server, Invalid, Observer
+    def getObserver(cls, dirNfs, cloudFolderPath, invalidFolderPath):
+        from quantisync.core.snapshot import LocalFolder, CloudFolder, InvalidFolder, Observer
 
-        invalid = Invalid(invalidSnapshotPath)
-        client = Client(nfsPath, 'XML', invalid)
-        server = Server(serverSnapshotPath)
-        return Observer(client, server)
+        invalidFolder = InvalidFolder(invalidFolderPath)
+        localFolder = LocalFolder(dirNfs, 'XML', invalidFolder)
+        cloudFolder = CloudFolder(cloudFolderPath)
+        return Observer(localFolder, cloudFolder)
 
     @classmethod
     def getHandler(cls):
@@ -41,7 +41,7 @@ class SyncFactory:
         self._view = view
 
     def getDefaultSync(self):
-        from quantisync.config.storage import SERVER_SNAPSHOT_PATH, INVALID_SNAPSHOT_PATH
+        from quantisync.config.storage import CLOUD_FOLDER_PATH, INVALID_FOLDER_PATH
         from quantisync.core.settings import SettingsSerializer
         from quantisync.core.sync import Sync, InvalidSettings
 
@@ -52,6 +52,6 @@ class SyncFactory:
         if not settings.nfsDir:
             raise InvalidSettings()
 
-        nfsObservador = NfsFactory.getObserver(settings.nfsDir, SERVER_SNAPSHOT_PATH, INVALID_SNAPSHOT_PATH)
+        nfsObserver = NfsFactory.getObserver(settings.nfsDir, CLOUD_FOLDER_PATH, INVALID_FOLDER_PATH)
         nfsHandler = NfsFactory.getHandler()
-        return Sync(self._view, nfsObservador, nfsHandler, DELAY)
+        return Sync(self._view, nfsObserver, nfsHandler, DELAY)

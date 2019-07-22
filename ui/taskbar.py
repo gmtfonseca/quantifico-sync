@@ -3,7 +3,7 @@ import os
 import wx
 from wx.adv import TaskBarIcon
 
-from quantisync.core.sync import Estado
+from quantisync.core.sync import State
 from quantisync.core.settings import SettingsSerializer
 from ui.assets import icons, messages
 from ui import settings
@@ -57,16 +57,16 @@ class TaskBarPresenter:
         os.system('start {}'.format(settings.nfsDir))
 
     def updateView(self, state):
-        if (state == Estado.SYNCING):
+        if (state == State.SYNCING):
             icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
             self._view.setIcon(icon, 'Quantifico\nSincronizando...')
-        elif (state == Estado.NORMAL):
+        elif (state == State.NORMAL):
             icon = wx.Icon(icons.CLOUD.as_posix())
             self._view.setIcon(icon, 'Quantifico\nAtualizado')
-        elif (state == Estado.NO_CONNECTION):
+        elif (state == State.NO_CONNECTION):
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self._view.setIcon(icon, messages.CONNECTION_FAILED)
-        elif (state == Estado.UNAUTHORIZED):
+        elif (state == State.UNAUTHORIZED):
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self._view.setIcon(icon, messages.UNAUTHORIZED_USER)
 

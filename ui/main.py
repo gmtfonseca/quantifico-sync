@@ -1,6 +1,6 @@
 import wx
 
-from quantisync.core.sync import InvalidSettings, Estado
+from quantisync.core.sync import InvalidSettings, State
 from ui import taskbar
 from ui.events import EVT_SYNC
 from ui import auth
@@ -54,7 +54,7 @@ class MainPresenter:
         self.handleUnauthorized(syncState)
 
     def handleUnauthorized(self, syncState):
-        if syncState == Estado.UNAUTHORIZED:
+        if syncState == State.UNAUTHORIZED:
             auth.show(self)
 
     def updateTaskBarIcon(self, syncState):

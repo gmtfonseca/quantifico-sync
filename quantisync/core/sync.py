@@ -15,7 +15,7 @@ class InvalidSettings(Exception):
     pass
 
 
-class Estado(Enum):
+class State(Enum):
     """
     Representa o estado de um objeto Sync (Thread)
     """
@@ -52,10 +52,10 @@ class Sync(Thread):
     Thread responsável por realizar sincronização de arquivos
     """
 
-    def __init__(self, view, observador, handler, delay):
+    def __init__(self, view, observer, handler, delay):
         super().__init__()
         self._view = view
-        self._observador = observador
+        self._observer = observer
         self._handler = handler
         self._delay = delay
         self._abort = False
@@ -65,45 +65,45 @@ class Sync(Thread):
             if self._abort:
                 return
 
-            self._observaMudancas()
+            self._observeChanges()
             time.sleep(self._delay)
 
     def abort(self):
         self._abort = True
 
-    def _observaMudancas(self):
-        self._observador.observe()
-        if self._observador.hasChanged():
-            self._handleMudancas()
+    def _observeChanges(self):
+        self._observer.observe()
+        if self._observer.hasChanged():
+            self._handleChanges()
 
-    def _handleMudancas(self):
+    def _handleChanges(self):
         try:
-            self._propagaEstadoView(Estado.SYNCING)
-            self._handleInsercoesRemocoes()
-            self._propagaEstadoView(Estado.NORMAL)
+            self._postSyncEvent(State.SYNCING)
+            self._handleInsertionsAndDeletions()
+            self._postSyncEvent(State.NORMAL)
         except (NewConnectionError, ConnectionError):
-            self._propagaEstadoView(Estado.NO_CONNECTION, True)
+            self._postSyncEvent(State.NO_CONNECTION, True)
         except HTTPError as error:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
-                self._propagaEstadoView(Estado.UNAUTHORIZED, True)
+                self._postSyncEvent(State.UNAUTHORIZED, True)
 
-    def _handleInsercoesRemocoes(self):
-        if self._observador.hasInsertions():
-            self._handleInsercoes()
-        if self._observador.hasDeletions():
-            self._handleRemocoes()
+    def _handleInsertionsAndDeletions(self):
+        if self._observer.hasInsertions():
+            self._handleInsertions()
+        if self._observer.hasDeletions():
+            self._handleDeletions()
 
-    def _handleInsercoes(self):
+    def _handleInsertions(self):
         logging.debug('Inserindo')
-        self._handler.onInsercao(self._observador.client,
-                                 self._observador.server,
-                                 self._observador.getInsertions())
+        self._handler.onInsert(self._observer.getLocalFolder(),
+                                self._observer.getCloudFolder(),
+                                 self._observer.getInsertions())
 
-    def _handleRemocoes(self):
+    def _handleDeletions(self):
         logging.debug('Removendo')
-        self._handler.onRemocao(self._observador.server,
-                                self._observador.getDeletions())
+        self._handler.onDelete(self._observer.getCloudFolder(),
+                                self._observer.getDeletions())
 
-    def _propagaEstadoView(self, estado, isFatal=False):
-        evt = EVT_SYNC(myEVT_SYNC, -1, estado, isFatal)
+    def _postSyncEvent(self, state, isFatal=False):
+        evt = EVT_SYNC(myEVT_SYNC, -1, state, isFatal)
         wx.PostEvent(self._view, evt)

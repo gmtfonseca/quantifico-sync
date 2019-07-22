@@ -1,20 +1,16 @@
 from copy import deepcopy
 
 
-class NfInvalida(Exception):
-    pass
-
-
 class Nf:
-    """
-    Estrutura de dados que descreve uma Nota Fiscal
-    """
+    '''
+    Estrutura de dados que representa uma Nota Fiscal
+    '''
 
-    def __init__(self, propriedadesArquivo, conteudo):
-        self.propriedadesArquivo = propriedadesArquivo
-        self.conteudo = conteudo
+    def __init__(self, fileProperties, content):
+        self.fileProperties = fileProperties
+        self.content = content
 
     def toDict(self):
         selfCopy = deepcopy(self)
-        selfCopy.propriedadesArquivo = selfCopy.propriedadesArquivo.toDict()
+        selfCopy.fileProperties = selfCopy.fileProperties.toDict()
         return vars(selfCopy)

@@ -1,40 +1,45 @@
 import xmltodict
 from xml.parsers.expat import ExpatError
 
-from quantisync.core.nf.nf import NfInvalida
+
+class InvalidNf(Exception):
+    def __init__(self, filePath):
+        self.filePath = filePath
+
+class InvalidXml(Exception):
+    def __init__(self, filePath):
+        self.filePath = filePath
 
 
-class XmlInvalido(Exception):
-    # TODO - Trocar de module
-    pass
-
-
-def converteXmlParaDict(xml):
+def xmlToDict(xml):
     try:
         nf = xmltodict.parse(xml)
         return nf
     except ExpatError:
-        raise XmlInvalido
+        raise InvalidXml
 
 
-def removeTagsNaoUtilizadas(parsedNf):
+def removeUnusedTags(parsedNf):
     try:
-        nfSemTagsNaoUtilizadas = parsedNf
-        del nfSemTagsNaoUtilizadas['nfeProc']['NFe']['Signature']
-        del nfSemTagsNaoUtilizadas['nfeProc']['protNFe']
-        return nfSemTagsNaoUtilizadas
+        nfWithoutUnusedTags = parsedNf
+        del nfWithoutUnusedTags['nfeProc']['NFe']['Signature']
+        del nfWithoutUnusedTags['nfeProc']['protNFe']
+        return nfWithoutUnusedTags
     except KeyError:
-        raise NfInvalida
+        raise InvalidNf
 
 
 class NfParser:
     @classmethod
     def parse(cls, path):
+        '''
+        Converte um arquivo XML em um objeto Nf
+        '''
         try:
             with open(path, 'r') as arquivo:
                 xml = arquivo.read()
-                nf = converteXmlParaDict(xml)
-                nfSemAtributosNaoUtilizados = removeTagsNaoUtilizadas(nf)
-                return nfSemAtributosNaoUtilizados
+                nf = xmlToDict(xml)
+                nfWithoutUnusedTags = removeUnusedTags(nf)
+                return nfWithoutUnusedTags
         except IOError:
             raise
