@@ -1,8 +1,8 @@
 import wx
 
 from quantisync.core.sync import InvalidSettings, State
-from ui import taskbar
 from ui.events import EVT_SYNC
+from ui import taskbar
 from ui import auth
 from ui import settings
 from ui import globals
@@ -22,6 +22,14 @@ class MainFrame(wx.Frame):
         super(MainFrame, self).__init__(None)
         self._taskBarIcon = taskbar.create(self)
 
+    def showInvalidNfDirDialog(self):
+        dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
+                               'Quantifico',
+                               wx.OK | wx.ICON_INFORMATION
+                               )
+        dlg.ShowModal()
+        dlg.Destroy()
+
     def getTaskBarIcon(self):
         return self._taskBarIcon
 
@@ -34,16 +42,11 @@ class MainPresenter:
 
     def startSync(self):
         try:
-            globals.createSyncManager(self)
+            globals.createSyncManager(self._view)
             globals.syncManager.startSync()
         except InvalidSettings:
-            dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
-                                   'Quantifico',
-                                   wx.OK | wx.ICON_INFORMATION
-                                   )
-            dlg.ShowModal()
-            dlg.Destroy()
-            settings.show(self)
+            self._view.showInvalidNfDirDialog()
+            settings.show(self._view)
 
     def updateSyncApp(self, evt):
         if evt.isFatal():
@@ -55,7 +58,7 @@ class MainPresenter:
 
     def handleUnauthorized(self, syncState):
         if syncState == State.UNAUTHORIZED:
-            auth.show(self)
+            auth.show(self._view)
 
     def updateTaskBarIcon(self, syncState):
         self._view.getTaskBarIcon().updateView(syncState)

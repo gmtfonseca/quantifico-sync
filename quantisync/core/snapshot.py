@@ -17,9 +17,9 @@ class LocalFolder:
 
     def refresh(self):
         files = Dir(self._path).files(self._extension)
-        self._snapshot = {Properties(File(f).baseName(),
+        self._snapshot = {Properties(File(f).name(),
                                      File(f).modified()).getState()
-                          for f in files}        
+                          for f in files}
 
     def addInvalidFile(self, path):
         self._invalidFolder.add(path)
@@ -29,8 +29,8 @@ class LocalFolder:
 
     def getSnapshot(self):
         return self._snapshot - self.getInvalidSnapshot()
-        
-    def getInvalidSnapshot(self):        
+
+    def getInvalidSnapshot(self):
         return self._invalidFolder.getSnapshot()
 
     def getPath(self):
@@ -46,24 +46,24 @@ class SerializableFolder:
     '''
 
     def __init__(self, path):
-        self._path = path        
-    
+        self._path = path
+
     def initialize(self, emptyObject):
         filePath = File(self._path)
-        if not filePath.exists():            
+        if not filePath.exists():
             self.saveToDisk(emptyObject)
-        
+
         return self.loadFromDisk()
 
     def saveToDisk(self, object):
         with open(self._path, "wb") as f:
             pickle.dump(object, f, pickle.HIGHEST_PROTOCOL)
-    
+
     def loadFromDisk(self):
         objectFile = File(self._path)
-        if objectFile.size() > 0:            
+        if objectFile.size() > 0:
             with open(self._path, 'rb') as f:
-                return pickle.load(f)        
+                return pickle.load(f)
 
     def getPath(self):
         return self._path
@@ -100,13 +100,13 @@ class InvalidFolder(SerializableFolder):
         invalidFile = File(path)
         if invalidFile.exists():
             fileName = invalidFile.name()
-            fileProperties = Properties(invalidFile.baseName(), invalidFile.modified())
+            fileProperties = Properties(invalidFile.name(), invalidFile.modified())
             self._files[fileName] = fileProperties.getState()
             self.saveToDisk(self._files)
 
     def remove(self, key):
         self._files.pop(key)
-        self.saveToDisk(self._files) 
+        self.saveToDisk(self._files)
 
     def getSnapshot(self):
         if self._files:
@@ -115,7 +115,7 @@ class InvalidFolder(SerializableFolder):
             return set()
 
 
-class Observer:    
+class Observer:
     '''
     Responsável em detectar mudanças entre pasta local e pasta na nuvem
     '''
@@ -154,6 +154,6 @@ class Observer:
 
     def getLocalFolder(self):
         return self._localFolder
-    
+
     def getCloudFolder(self):
         return self._cloudFolder

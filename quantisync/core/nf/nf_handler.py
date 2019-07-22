@@ -1,30 +1,31 @@
 import json
-import os
+from pathlib import Path
 
 from http import HTTPStatus
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
 from quantisync.core.file import Properties
-from quantisync.core.nf.nf_parser import NfParser, InvalidXml
-from quantisync.core.nf.nf import Nf, InvalidNf
+from quantisync.core.nf.nf_parser import NfParser, InvalidNf
+from quantisync.core.nf.nf import Nf
 
 
 class NfHandler():
     '''
     Responsável em realizar ações em cima de mudanças de estado entre Cliente e Servidor
     '''
+
     def __init__(self, httpService):
         self._httpService = httpService
 
     def onInsert(self, localFolder, cloudFolder, insertions):
         nfInsertionStrategy = NfInsertionStrategy(self._httpService,
-                                                localFolder,
-                                                cloudFolder)
+                                                  localFolder,
+                                                  cloudFolder)
         nfInsertionStrategy.insert(insertions)
 
     def onDelete(self, cloudFolder, deletions):
         nfDeletionStrategy = NfDeletionStrategy(self._httpService,
-                                              cloudFolder)
+                                                cloudFolder)
         nfDeletionStrategy.delete(deletions)
 
 
@@ -34,7 +35,7 @@ class NfInsertionStrategy:
         self._localFolder = localFolder
         self._cloudFolder = cloudFolder
         self._insertedNfsQueue = HttpStreamQueue(httpService,
-                                                  self._streamGenerator)
+                                                 self._streamGenerator)
 
     def insert(self, insertions):
         self._enqueueInsertedNfs(insertions)
@@ -45,24 +46,17 @@ class NfInsertionStrategy:
             try:
                 insertedNf = self._setupInsertedNf(i)
                 self._insertedNfsQueue.enqueue(insertedNf.toDict())
-            except (InvalidNf, InvalidXml) as e:                
+            except InvalidNf as e:
                 self._localFolder.addInvalidFile(e.filePath)
             except Exception:
                 pass
 
-    def _setupInsertedNf(self, state):                
-        try:
-            fileProperties = Properties.fromState(state)
-            filePath = os.path.join(self._localFolder.getPath(),
-                                    '{}.{}'.format(fileProperties.name,
-                                                    self._localFolder.getExtension()))
-            nfContent = NfParser.parse(filePath)
-            nf = Nf(fileProperties, nfContent)
-            return nf
-        except InvalidNf:
-            raise InvalidNf(filePath)
-        except InvalidXml:
-            raise InvalidXml(filePath)                  
+    def _setupInsertedNf(self, state):
+        fileProperties = Properties.fromState(state)
+        filePath = Path(self._localFolder.getPath()) / fileProperties.name
+        fileContent = NfParser.parse(str(filePath))
+        nf = Nf(fileProperties, fileContent)
+        return nf
 
     def _dequeueInsertedNfs(self):
         self._insertedNfsQueue.dequeue(self._postBatchHandler)

@@ -1,8 +1,7 @@
 import unittest
 import collections
 
-from quantisync.core.nf.nf_parser import NfParser, XmlInvalido
-from quantisync.core.nf.nf import NfInvalida
+from quantisync.core.nf.nf_parser import NfParser, InvalidNf
 from tests.config import FIXTURE_PATH
 
 
@@ -11,32 +10,30 @@ class NfParserTest(unittest.TestCase):
     def setUp(self):
         self.nf = NfParser.parse(FIXTURE_PATH / 'local/nfs1.XML')
 
-    def test_produz_dicionario(self):
+    def test_output_dict(self):
         "Testa se produz dicionário"
         self.assertTrue(isinstance(self.nf, collections.Mapping))
 
-    def test_produz_nf_valida(self):
+    def test_output_valid_nf(self):
         "Testa se possui campo raiz da NF"
         self.assertTrue(self.nf['nfeProc']['NFe'])
 
-    def test_produz_nf_sem_assinatura(self):
+    def test_output_nf_without_signature(self):
         "Testa se não possui campo Signature"
         with self.assertRaises(KeyError):
             self.nf['nfeProc']['NFe']['Signature']
 
-    def test_produz_nf_sem_protocolo(self):
+    def test_output_nf_without_protocol(self):
         "Testa se não possui campo protNfe"
         with self.assertRaises(KeyError):
             self.nf['nfeProc']['protNFe']
 
-    def test_xml_invalido_exception(self):
-        "Testa se produz exception XmlInvalida"
-        with self.assertRaises(XmlInvalido):
+    def test_output_invalid_nf_exception(self):
+        "Testa se produz exception NfInvalida"
+        with self.assertRaises(InvalidNf):
             NfParser.parse(FIXTURE_PATH / 'invalid/invalid1.XML')
 
-    def test_nf_invalida_exception(self):
-        "Testa se produz exception NfInvalida"
-        with self.assertRaises(NfInvalida):
+        with self.assertRaises(InvalidNf):
             NfParser.parse(FIXTURE_PATH / 'invalid/invalid2.XML')
 
 

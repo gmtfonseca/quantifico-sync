@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import Mock
 
 from tests.config import FIXTURE_PATH
 from quantisync.core.settings import Settings, SettingsSerializer

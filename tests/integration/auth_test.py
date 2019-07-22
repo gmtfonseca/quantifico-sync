@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 # from requests.exceptions import HTTPError
 
-from quantisync.lib.auth import Auth, EmptyEmail, KeyringTokenStorage  # , InvalidUser
+from quantisync.core.auth import Auth, EmptyEmail, KeyringTokenStorage  # , InvalidUser
 # from tests.shared import MockResponse
 
 

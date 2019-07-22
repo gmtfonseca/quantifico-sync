@@ -1,7 +1,7 @@
 import wx
 
 myEVT_SYNC = wx.NewEventType()
-EVT_SYNC = wx.PyEventBinder(myEVT_SYNC, 1)
+EVT_SYNC = wx.PyEventBinder(myEVT_SYNC, 2)
 
 
 class SyncEvent(wx.PyCommandEvent):

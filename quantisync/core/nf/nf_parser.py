@@ -6,27 +6,17 @@ class InvalidNf(Exception):
     def __init__(self, filePath):
         self.filePath = filePath
 
-class InvalidXml(Exception):
-    def __init__(self, filePath):
-        self.filePath = filePath
-
 
 def xmlToDict(xml):
-    try:
-        nf = xmltodict.parse(xml)
-        return nf
-    except ExpatError:
-        raise InvalidXml
+    nf = xmltodict.parse(xml)
+    return nf
 
 
 def removeUnusedTags(parsedNf):
-    try:
-        nfWithoutUnusedTags = parsedNf
-        del nfWithoutUnusedTags['nfeProc']['NFe']['Signature']
-        del nfWithoutUnusedTags['nfeProc']['protNFe']
-        return nfWithoutUnusedTags
-    except KeyError:
-        raise InvalidNf
+    nfWithoutUnusedTags = parsedNf
+    del nfWithoutUnusedTags['nfeProc']['NFe']['Signature']
+    del nfWithoutUnusedTags['nfeProc']['protNFe']
+    return nfWithoutUnusedTags
 
 
 class NfParser:
@@ -41,5 +31,7 @@ class NfParser:
                 nf = xmlToDict(xml)
                 nfWithoutUnusedTags = removeUnusedTags(nf)
                 return nfWithoutUnusedTags
+        except (ExpatError, KeyError):
+            raise InvalidNf(path)
         except IOError:
             raise

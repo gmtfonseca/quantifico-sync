@@ -8,7 +8,7 @@ from http import HTTPStatus
 from requests.exceptions import ConnectionError, HTTPError
 from urllib3.connection import NewConnectionError
 
-from ui.events import EVT_SYNC, myEVT_SYNC
+from ui.events import SyncEvent, myEVT_SYNC
 
 
 class InvalidSettings(Exception):
@@ -16,9 +16,9 @@ class InvalidSettings(Exception):
 
 
 class State(Enum):
-    """
+    '''
     Representa o estado de um objeto Sync (Thread)
-    """
+    '''
     NORMAL = 0
     SYNCING = 1
     NO_CONNECTION = 2
@@ -26,9 +26,9 @@ class State(Enum):
 
 
 class SyncManager:
-    """
+    '''
     Classe que encapsula o gerenciamento de um Sync
-    """
+    '''
 
     def __init__(self, syncFactory):
         self._syncFactory = syncFactory
@@ -48,9 +48,9 @@ class SyncManager:
 
 
 class Sync(Thread):
-    """
+    '''
     Thread responsável por realizar sincronização de arquivos
-    """
+    '''
 
     def __init__(self, view, observer, handler, delay):
         super().__init__()
@@ -96,14 +96,14 @@ class Sync(Thread):
     def _handleInsertions(self):
         logging.debug('Inserindo')
         self._handler.onInsert(self._observer.getLocalFolder(),
-                                self._observer.getCloudFolder(),
-                                 self._observer.getInsertions())
+                               self._observer.getCloudFolder(),
+                               self._observer.getInsertions())
 
     def _handleDeletions(self):
         logging.debug('Removendo')
         self._handler.onDelete(self._observer.getCloudFolder(),
-                                self._observer.getDeletions())
+                               self._observer.getDeletions())
 
     def _postSyncEvent(self, state, isFatal=False):
-        evt = EVT_SYNC(myEVT_SYNC, -1, state, isFatal)
+        evt = SyncEvent(myEVT_SYNC, -1, state, isFatal)
         wx.PostEvent(self._view, evt)

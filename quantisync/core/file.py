@@ -1,7 +1,7 @@
 class Properties:
-    """
+    '''
     Estrutura de dados que descreve as propriedades e estado de um arquivo
-    """
+    '''
 
     def __init__(self, name, modified):
         self.name = name
@@ -9,9 +9,9 @@ class Properties:
 
     @classmethod
     def fromState(cls, state):
-        """
+        '''
         Estado é uma string composta por '${nome}/${dataModificacaoSegundos}'
-        """
+        '''
         nameModified = state.split('/')
         name = nameModified[0]
         modified = nameModified[1]
