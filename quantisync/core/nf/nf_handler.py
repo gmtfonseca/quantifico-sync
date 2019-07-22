@@ -4,7 +4,7 @@ import os
 from http import HTTPStatus
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
-from quantisync.core.arquivo import PropriedadesArquivo
+from quantisync.core.file import Properties
 from quantisync.core.nf.nf_parser import NfParser
 from quantisync.core.nf.nf import Nf
 
@@ -49,10 +49,10 @@ class NfInsercaoStrategy:
                 pass
 
     def _setupNfInserida(self, estado):
-        propriedadesArquivo = PropriedadesArquivo.fromEstado(estado)
+        propriedadesArquivo = Properties.fromState(estado)
         pathXml = os.path.join(self._cliente.getPath(),
-                               '{}.{}'.format(propriedadesArquivo.nome,
-                                              self._cliente.getExtensao()))
+                               '{}.{}'.format(propriedadesArquivo.name,
+                                              self._cliente.getExtension()))
         conteudoNf = NfParser.parse(pathXml)
         nf = Nf(propriedadesArquivo, conteudoNf)
         return nf
@@ -66,7 +66,7 @@ class NfInsercaoStrategy:
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
-            self._servidor.setEstado(response.json())
+            self._servidor.setSnapshot(response.json())
 
 
 class NfRemocaoStrategy:
@@ -84,7 +84,7 @@ class NfRemocaoStrategy:
 
     def _enqueueNfsRemovidas(self, remocoes):
         for r in remocoes:
-            nomeArquivoNfRemovida = PropriedadesArquivo.fromEstado(r).nome
+            nomeArquivoNfRemovida = Properties.fromState(r).nome
             self._nfsRemovidasQueue.enqueue(nomeArquivoNfRemovida)
 
     def _dequeueNfsRemovidas(self):
@@ -92,4 +92,4 @@ class NfRemocaoStrategy:
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
-            self._servidor.setEstado(response.json())
+            self._servidor.setSnapshot(response.json())

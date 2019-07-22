@@ -72,8 +72,8 @@ class Sync(Thread):
         self._abort = True
 
     def _observaMudancas(self):
-        self._observador.observar()
-        if self._observador.possuiMudancas():
+        self._observador.observe()
+        if self._observador.hasChanged():
             self._handleMudancas()
 
     def _handleMudancas(self):
@@ -88,21 +88,21 @@ class Sync(Thread):
                 self._propagaEstadoView(Estado.UNAUTHORIZED, True)
 
     def _handleInsercoesRemocoes(self):
-        if self._observador.possuiInsercoes():
+        if self._observador.hasInsertions():
             self._handleInsercoes()
-        if self._observador.possuiRemocoes():
+        if self._observador.hasDeletions():
             self._handleRemocoes()
 
     def _handleInsercoes(self):
         logging.debug('Inserindo')
-        self._handler.onInsercao(self._observador.cliente,
-                                 self._observador.servidor,
-                                 self._observador.getInsercoes())
+        self._handler.onInsercao(self._observador.client,
+                                 self._observador.server,
+                                 self._observador.getInsertions())
 
     def _handleRemocoes(self):
         logging.debug('Removendo')
-        self._handler.onRemocao(self._observador.servidor,
-                                self._observador.getRemocoes())
+        self._handler.onRemocao(self._observador.server,
+                                self._observador.getDeletions())
 
     def _propagaEstadoView(self, estado, isFatal=False):
         evt = EVT_SYNC(myEVT_SYNC, -1, estado, isFatal)

@@ -37,7 +37,7 @@ class NfParserTest(unittest.TestCase):
     def test_nf_invalida_exception(self):
         "Testa se produz exception NfInvalida"
         with self.assertRaises(NfInvalida):
-            NfParser.parse(FIXTURE_PATH / 'invalidnf.XML')
+            NfParser.parse(FIXTURE_PATH / 'invalid2.XML')
 
 
 if __name__ == '__main__':
