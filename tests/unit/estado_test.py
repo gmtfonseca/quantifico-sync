@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from quantisync.core.snapshot import LocalFolder, CloudFolder, InvalidFolder, Observer
+from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder, Observer
 from quantisync.lib.util import File
 
 from tests.config import FIXTURE_PATH
@@ -19,24 +19,24 @@ nfs2 = {'name': 'nfs2.XML',
 class LocalFolderTest(unittest.TestCase):
 
     def test_init(self):
-        invalidFolder = Mock()
-        invalidFolder.getSnapshot.return_value = set()
-        localFolder = LocalFolder('path', 'extension', invalidFolder)
+        blacklistedFolder = Mock()
+        blacklistedFolder.getSnapshot.return_value = set()
+        localFolder = LocalFolder('path', 'extension', blacklistedFolder)
         self.assertEqual(localFolder.getPath(), 'path')
         self.assertEqual(localFolder.getExtension(), 'extension')
         self.assertEqual(localFolder.getSnapshot(), set())
 
     def test_refresh(self):
-        invalidFolder = Mock()
-        invalidFolder.getSnapshot.return_value = set()
-        localFolder = LocalFolder(FIXTURE_PATH / 'local', 'XML', invalidFolder)
+        blacklistedFolder = Mock()
+        blacklistedFolder.getSnapshot.return_value = set()
+        localFolder = LocalFolder(FIXTURE_PATH / 'local', 'XML', blacklistedFolder)
         localFolder.refresh()
         self.assertEqual(localFolder.getSnapshot(), {nfs1['state'], nfs2['state']})
 
     def test_refresh_with_invalid_file(self):
-        invalidFolder = Mock()
-        invalidFolder.getSnapshot.return_value = {nfs1['state']}
-        localFolder = LocalFolder(FIXTURE_PATH / 'local', 'XML', invalidFolder)
+        blacklistedFolder = Mock()
+        blacklistedFolder.getSnapshot.return_value = {nfs1['state']}
+        localFolder = LocalFolder(FIXTURE_PATH / 'local', 'XML', blacklistedFolder)
         localFolder.refresh()
         self.assertEqual(localFolder.getSnapshot(), {nfs2['state']})
         self.assertEqual(localFolder.getInvalidSnapshot(), {nfs1['state']})
@@ -63,7 +63,7 @@ class CloudFolderTest(unittest.TestCase):
         self.assertEqual(cloudFolder.getSnapshot(), snapshot)
 
 
-class InvalidFolderTest(unittest.TestCase):
+class BlacklistedFolderTest(unittest.TestCase):
 
     def setUp(self):
         self.path = FIXTURE_PATH / 'invalid.dat'
@@ -72,21 +72,21 @@ class InvalidFolderTest(unittest.TestCase):
         File(self.path).unlink()
 
     def test_init(self):
-        invalidFolder = InvalidFolder(self.path)
-        self.assertEqual(invalidFolder.getPath(), self.path)
-        self.assertEqual(invalidFolder.getSnapshot(), set())
+        blacklistedFolder = BlacklistedFolder(self.path)
+        self.assertEqual(blacklistedFolder.getPath(), self.path)
+        self.assertEqual(blacklistedFolder.getSnapshot(), set())
 
     def test_add(self):
-        invalidFolder = InvalidFolder(self.path)
-        invalidFolder.add(nfs1['path'])
+        blacklistedFolder = BlacklistedFolder(self.path)
+        blacklistedFolder.add(nfs1['path'])
         snapshot = {nfs1['state']}
-        self.assertEqual(invalidFolder.getSnapshot(), snapshot)
+        self.assertEqual(blacklistedFolder.getSnapshot(), snapshot)
 
     def test_remove(self):
-        invalidFolder = InvalidFolder(self.path)
-        invalidFolder.add(nfs1['path'])
-        invalidFolder.remove(nfs1['name'])
-        self.assertEqual(invalidFolder.getSnapshot(), set())
+        blacklistedFolder = BlacklistedFolder(self.path)
+        blacklistedFolder.add(nfs1['path'])
+        blacklistedFolder.remove(nfs1['name'])
+        self.assertEqual(blacklistedFolder.getSnapshot(), set())
 
 
 class ObserverTest(unittest.TestCase):

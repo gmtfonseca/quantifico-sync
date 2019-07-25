@@ -9,10 +9,10 @@ class LocalFolder:
     Representa uma pasta local com arquivos
     '''
 
-    def __init__(self, path, extension, invalidFolder):
+    def __init__(self, path, extension, blacklistedFolder):
         self._path = path
         self._extension = extension
-        self._invalidFolder = invalidFolder
+        self._blacklistedFolder = blacklistedFolder
         self._snapshot = set()
 
     def refresh(self):
@@ -22,16 +22,16 @@ class LocalFolder:
                           for f in files}
 
     def addInvalidFile(self, path):
-        self._invalidFolder.add(path)
+        self._blacklistedFolder.add(path)
 
     def removeInvalidFile(self, fileName):
-        self._invalidFolder.remove(fileName)
+        self._blacklistedFolder.remove(fileName)
 
     def getSnapshot(self):
         return self._snapshot - self.getInvalidSnapshot()
 
     def getInvalidSnapshot(self):
-        return self._invalidFolder.getSnapshot()
+        return self._blacklistedFolder.getSnapshot()
 
     def getPath(self):
         return self._path
@@ -55,9 +55,9 @@ class SerializableFolder:
 
         return self.loadFromDisk()
 
-    def saveToDisk(self, object):
+    def saveToDisk(self, obj):
         with open(self._path, "wb") as f:
-            pickle.dump(object, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
     def loadFromDisk(self):
         objectFile = File(self._path)
@@ -86,7 +86,7 @@ class CloudFolder(SerializableFolder):
         return self._snapshot
 
 
-class InvalidFolder(SerializableFolder):
+class BlacklistedFolder(SerializableFolder):
     '''
     Dicionário que representa arquivos considerados inválidos
     Sua chave é o nome completo do arquivo, já como valor possui seu estado

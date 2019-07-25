@@ -4,6 +4,7 @@ from pathlib import Path
 from http import HTTPStatus
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
+from quantisync.lib.shell import ShellIcon
 from quantisync.core.file import Properties
 from quantisync.core.nf.nf_parser import NfParser, InvalidNf
 from quantisync.core.nf.nf import Nf
@@ -68,6 +69,7 @@ class NfInsertionStrategy:
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
             self._cloudFolder.setSnapshot(response.json())
+            ShellIcon.updateDir(self._localFolder.getPath())
 
 
 class NfDeletionStrategy:

@@ -14,7 +14,7 @@ class File:
         return self._path.name
 
     def modified(self):
-        return self._path.stat().st_mtime
+        return int(self._path.stat().st_mtime)
 
     def exists(self):
         return self._path.exists()
