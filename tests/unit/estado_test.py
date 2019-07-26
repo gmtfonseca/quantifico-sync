@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder, Observer
+from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder  # , Observer
 from quantisync.lib.util import File
 
 from tests.config import FIXTURE_PATH
@@ -78,14 +78,14 @@ class BlacklistedFolderTest(unittest.TestCase):
 
     def test_add(self):
         blacklistedFolder = BlacklistedFolder(self.path)
-        blacklistedFolder.add(nfs1['path'])
-        snapshot = {nfs1['state']}
+        blacklistedFolder.addFile(nfs1['path'])
+        snapshot = set({nfs1['state']})
         self.assertEqual(blacklistedFolder.getSnapshot(), snapshot)
 
     def test_remove(self):
         blacklistedFolder = BlacklistedFolder(self.path)
-        blacklistedFolder.add(nfs1['path'])
-        blacklistedFolder.remove(nfs1['name'])
+        blacklistedFolder.addFile(nfs1['path'])
+        blacklistedFolder.removeFileByState(nfs1['state'])
         self.assertEqual(blacklistedFolder.getSnapshot(), set())
 
 

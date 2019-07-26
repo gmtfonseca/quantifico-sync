@@ -21,11 +21,12 @@ class LocalFolder:
                                      File(f).modified()).getState()
                           for f in files}
 
-    def addInvalidFile(self, path):
-        self._blacklistedFolder.add(path)
+    def addToBlacklist(self, path):
+        self._blacklistedFolder.addFile(path)
 
-    def removeInvalidFile(self, fileName):
-        self._blacklistedFolder.remove(fileName)
+    def removeFromBlacklist(self, fileName):
+        if self._blacklistedFolder.hasFile(fileName):
+            self._blacklistedFolder.removeFile(fileName)
 
     def getSnapshot(self):
         return self._snapshot - self.getInvalidSnapshot()
@@ -96,17 +97,19 @@ class BlacklistedFolder(SerializableFolder):
         super().__init__(path)
         self._files = self.initialize(dict())
 
-    def add(self, path):
+    def addFile(self, path):
         invalidFile = File(path)
         if invalidFile.exists():
-            fileName = invalidFile.name()
             fileProperties = Properties(invalidFile.name(), invalidFile.modified())
-            self._files[fileName] = fileProperties.getState()
+            self._files[fileProperties.name] = fileProperties.getState()
             self.saveToDisk(self._files)
 
-    def remove(self, key):
-        self._files.pop(key)
+    def removeFile(self, fileName):
+        self._files.pop(fileName)
         self.saveToDisk(self._files)
+
+    def hasFile(self, fileName):
+        return self._files and fileName in self._files
 
     def getSnapshot(self):
         if self._files:

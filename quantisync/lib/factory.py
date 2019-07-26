@@ -45,7 +45,7 @@ class SyncFactory:
         from quantisync.core.settings import SettingsSerializer
         from quantisync.core.sync import Sync, InvalidSettings
 
-        DELAY = 5
+        DELAY = 2
         settingsSerializer = SettingsSerializer()
         settings = settingsSerializer.load()
 

@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
-
 from http import HTTPStatus
+
+from requests.exceptions import HTTPError
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
 from quantisync.lib.shell import ShellIcon
@@ -39,6 +40,7 @@ class NfInsertionStrategy:
                                                  self._streamGenerator)
 
     def insert(self, insertions):
+        self._updateOverlayIcons()
         self._enqueueInsertedNfs(insertions)
         self._dequeueInsertedNfs()
 
@@ -47,9 +49,11 @@ class NfInsertionStrategy:
             try:
                 insertedNf = self._setupInsertedNf(i)
                 self._insertedNfsQueue.enqueue(insertedNf.toDict())
+                self._localFolder.removeFromBlacklist(insertedNf.fileProperties.name)
             except InvalidNf as e:
-                self._localFolder.addInvalidFile(e.filePath)
-            except Exception:
+                self._localFolder.addToBlacklist(e.filePath)
+                self._updateOverlayIcons()
+            except FileNotFoundError:
                 pass
 
     def _setupInsertedNf(self, state):
@@ -60,7 +64,12 @@ class NfInsertionStrategy:
         return nf
 
     def _dequeueInsertedNfs(self):
-        self._insertedNfsQueue.dequeue(self._postBatchHandler)
+        try:
+            self._insertedNfsQueue.dequeue(self._postBatchHandler)
+        except HTTPError as e:
+            print(e)
+            # TODO - Add blacklist
+            raise
 
     def _streamGenerator(self, nfs):
         for nf in nfs:
@@ -69,7 +78,11 @@ class NfInsertionStrategy:
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
             self._cloudFolder.setSnapshot(response.json())
-            ShellIcon.updateDir(self._localFolder.getPath())
+            self._updateOverlayIcons()
+            # TODO - Update blacklist folder
+
+    def _updateOverlayIcons(self):
+        ShellIcon.updateDir(self._localFolder.getPath())
 
 
 class NfDeletionStrategy:
