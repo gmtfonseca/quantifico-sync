@@ -38,13 +38,13 @@ class LocalFolder:
 
     def removeGhostFilesFromBlacklist(self):
         '''
-        Remove arquivos que estão na blacklist e não existem mais no FileDisk
+        Remove arquivos que estão na blacklist e não existem mais no FileSystem
         Este cenário acontece quando arquivos que não foram importados por alguma
         razão e foram removidos pelo usuário
         '''
         blacklistedFiles = copy(self._blacklistedFolder.getFiles())
         for f in blacklistedFiles:
-            filePath = Path(self.getPath()) / f
+            filePath = Path(self._path) / f
             invalidFile = File(filePath)
             if not invalidFile.exists():
                 self._blacklistedFolder.removeFile(f)
