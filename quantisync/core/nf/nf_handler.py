@@ -2,8 +2,6 @@ import json
 from pathlib import Path
 from http import HTTPStatus
 
-from requests.exceptions import HTTPError
-
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
 from quantisync.lib.shell import ShellIcon
 from quantisync.core.file import Properties
@@ -47,16 +45,16 @@ class NfInsertionStrategy:
     def _enqueueInsertedNfs(self, insertions):
         for i in insertions:
             try:
-                insertedNf = self._setupInsertedNf(i)
+                insertedNf = self._initNfFromState(i)
                 self._insertedNfsQueue.enqueue(insertedNf.toDict())
-                self._localFolder.removeFromBlacklist(insertedNf.fileProperties.name)
+                self._localFolder.removeFromBlacklistIfExists(insertedNf.fileProperties.name)
             except InvalidNf as e:
-                self._localFolder.addToBlacklist(e.filePath)
+                self._localFolder.addToBlacklistFromPath(e.filePath)
                 self._updateOverlayIcons()
             except FileNotFoundError:
                 pass
 
-    def _setupInsertedNf(self, state):
+    def _initNfFromState(self, state):
         fileProperties = Properties.fromState(state)
         filePath = Path(self._localFolder.getPath()) / fileProperties.name
         fileContent = NfParser.parse(str(filePath))
@@ -64,12 +62,7 @@ class NfInsertionStrategy:
         return nf
 
     def _dequeueInsertedNfs(self):
-        try:
-            self._insertedNfsQueue.dequeue(self._postBatchHandler)
-        except HTTPError as e:
-            print(e)
-            # TODO - Add blacklist
-            raise
+        self._insertedNfsQueue.dequeue(self._postBatchHandler)
 
     def _streamGenerator(self, nfs):
         for nf in nfs:
@@ -77,9 +70,15 @@ class NfInsertionStrategy:
 
     def _postBatchHandler(self, response):
         if (response.status_code == HTTPStatus.OK):
-            self._cloudFolder.setSnapshot(response.json())
+            self._cloudFolder.setSnapshot(response.json()['estadoServidor'])
+            self._handleBlacklistedFiles(response.json()['arquivosInvalidos'])
             self._updateOverlayIcons()
-            # TODO - Update blacklist folder
+
+    def _handleBlacklistedFiles(self, invalidFilesState):
+        self._localFolder.removeGhostFilesFromBlacklist()
+        if invalidFilesState:
+            for f in invalidFilesState:
+                self._localFolder.addToBlacklistFromState(f)
 
     def _updateOverlayIcons(self):
         ShellIcon.updateDir(self._localFolder.getPath())

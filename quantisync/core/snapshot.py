@@ -1,4 +1,6 @@
 import pickle
+from pathlib import Path
+from copy import copy
 
 from quantisync.core.file import Properties
 from quantisync.lib.util import File, Dir
@@ -21,12 +23,31 @@ class LocalFolder:
                                      File(f).modified()).getState()
                           for f in files}
 
-    def addToBlacklist(self, path):
-        self._blacklistedFolder.addFile(path)
+    def addToBlacklistFromPath(self, path):
+        invalidFile = File(path)
+        fileProperties = Properties(invalidFile.name(), invalidFile.modified())
+        self._blacklistedFolder.addFile(fileProperties)
 
-    def removeFromBlacklist(self, fileName):
+    def addToBlacklistFromState(self, state):
+        fileProperties = Properties.fromState(state)
+        self._blacklistedFolder.addFile(fileProperties)
+
+    def removeFromBlacklistIfExists(self, fileName):
         if self._blacklistedFolder.hasFile(fileName):
             self._blacklistedFolder.removeFile(fileName)
+
+    def removeGhostFilesFromBlacklist(self):
+        '''
+        Remove arquivos que estão na blacklist e não existem mais no FileDisk
+        Este cenário acontece quando arquivos que não foram importados por alguma
+        razão e foram removidos pelo usuário
+        '''
+        blacklistedFiles = copy(self._blacklistedFolder.getFiles())
+        for f in blacklistedFiles:
+            filePath = Path(self.getPath()) / f
+            invalidFile = File(filePath)
+            if not invalidFile.exists():
+                self._blacklistedFolder.removeFile(f)
 
     def getSnapshot(self):
         return self._snapshot - self.getInvalidSnapshot()
@@ -97,10 +118,8 @@ class BlacklistedFolder(SerializableFolder):
         super().__init__(path)
         self._files = self.initialize(dict())
 
-    def addFile(self, path):
-        invalidFile = File(path)
-        if invalidFile.exists():
-            fileProperties = Properties(invalidFile.name(), invalidFile.modified())
+    def addFile(self, fileProperties):
+        if fileProperties:
             self._files[fileProperties.name] = fileProperties.getState()
             self.saveToDisk(self._files)
 
@@ -111,11 +130,17 @@ class BlacklistedFolder(SerializableFolder):
     def hasFile(self, fileName):
         return self._files and fileName in self._files
 
-    def getSnapshot(self):
-        if self._files:
-            return set(self._files.values())
-        else:
+    def getFiles(self):
+        if not self._files:
             return set()
+
+        return set(self._files.keys())
+
+    def getSnapshot(self):
+        if not self._files:
+            return set()
+
+        return set(self._files.values())
 
 
 class Observer:

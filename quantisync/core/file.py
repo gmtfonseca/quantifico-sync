@@ -8,10 +8,17 @@ class Properties:
         self.modified = modified
 
     @classmethod
+    def empty(cls):
+        return cls('', 0)
+
+    @classmethod
     def fromState(cls, state):
         '''
         Estado é uma string composta por '${nome}/${dataModificacaoSegundos}'
         '''
+        if not state:
+            return Properties.empty()
+
         nameModified = state.split('/')
         name = nameModified[0]
         modified = nameModified[1]

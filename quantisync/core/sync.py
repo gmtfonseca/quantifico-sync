@@ -88,10 +88,10 @@ class Sync(Thread):
                 self._postSyncEvent(State.UNAUTHORIZED, True)
 
     def _handleInsertionsAndDeletions(self):
-        if self._observer.hasInsertions():
-            self._handleInsertions()
         if self._observer.hasDeletions():
             self._handleDeletions()
+        if self._observer.hasInsertions():
+            self._handleInsertions()
 
     def _handleInsertions(self):
         logging.debug('Inserindo')
