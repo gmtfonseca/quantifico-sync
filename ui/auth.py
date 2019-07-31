@@ -1,9 +1,7 @@
-from pathlib import Path
-
 import wx
 
 from ui import globals
-from ui.assets import icons
+from ui.assets import icons, images
 from quantisync.lib.factory import AuthFactory
 from quantisync.core.auth import InvalidUser
 
@@ -35,7 +33,7 @@ class AuthDialog(wx.Dialog):
         font = wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         subTitle.SetFont(font)
 
-        IMG = Path('ui/assets/images/auth.png')
+        IMG = images.AUTH_BACKGROUND
         png = wx.Image(str(IMG), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
         bpm = wx.StaticBitmap(self, -1, png, (10, 5), (png.GetWidth(), png.GetHeight()))
 

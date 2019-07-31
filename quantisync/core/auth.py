@@ -1,7 +1,9 @@
 from http import HTTPStatus
 
 from requests.exceptions import HTTPError
+import keyring.backends.Windows
 import keyring
+keyring.set_keyring(keyring.backends.Windows.WinVaultKeyring())
 
 
 class InvalidUser(Exception):

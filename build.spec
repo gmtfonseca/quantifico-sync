@@ -1,19 +1,20 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
 added_files = [
-         ( 'quantisync/ui/assets/icons/*.ico', 'ui/assets/icons' )
+         ( 'ui/assets/icons/*.ico', 'ui/assets/icons' ),
+         ( 'ui/assets/images/*.png', 'ui/assets/images' )
          ]
 
-a = Analysis(['quantisync\__main__.py'],
-             pathex=['F:\\Projetos\\quantifico\\quantifico-sync\\quantisync'],
+a = Analysis(['run.py'],
+             pathex=['F:\\Projetos\\quantifico\\quantifico-sync'],
              binaries=[],
              datas=added_files,
-             hiddenimports=[],
+             hiddenimports=['win32timezone','quantisync.config.auth', 'win32ctypes.core', 'win32ctypes.core._common', 'win32ctypes.core._dll', 'win32ctypes.core._resource', 'win32ctypes.core._authentication'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['numpy'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -27,9 +28,10 @@ exe = EXE(pyz,
           a.datas,
           [],
           name='Quantifico',
-          debug=False,
+          debug=True,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
+          upx_exclude=[],
           runtime_tmpdir=None,
-          console=False )
+          console=True )

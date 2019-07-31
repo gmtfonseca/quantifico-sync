@@ -6,3 +6,5 @@ __pycache__
 *.dat
 proto.py
 *.cfg
+build
+dist

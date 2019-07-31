@@ -35,7 +35,7 @@ class Dir:
         self._path = Path(path)
 
     def files(self, extension):
-        if self._path.exists():
-            return glob.glob('{}/*.{}'.format(str(self._path), extension))
-        else:
+        if not self._path.exists():
             return []
+
+        return glob.glob('{}/*.{}'.format(str(self._path), extension))
