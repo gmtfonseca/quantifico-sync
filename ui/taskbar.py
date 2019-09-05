@@ -12,7 +12,7 @@ from ui import globals
 
 def create(frame):
     return TaskBarPresenter(SettingsSerializer(),
-                            TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'Quantifico\nAtualizado'),
+                            TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'QuantiSync\nAtualizado'),
                             TaskBarInteractor())
 
 
@@ -59,10 +59,10 @@ class TaskBarPresenter:
     def updateView(self, state):
         if (state == State.SYNCING):
             icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
-            self._view.setIcon(icon, 'Quantifico\nSincronizando...')
+            self._view.setIcon(icon, 'QuantiSync\nSincronizando...')
         elif (state == State.NORMAL):
             icon = wx.Icon(icons.CLOUD.as_posix())
-            self._view.setIcon(icon, 'Quantifico\nAtualizado')
+            self._view.setIcon(icon, 'QuantiSync\nAtualizado')
         elif (state == State.NO_CONNECTION):
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self._view.setIcon(icon, messages.CONNECTION_FAILED)

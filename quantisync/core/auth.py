@@ -20,11 +20,11 @@ class KeyringTokenStorage():
         keyring.set_keyring(keyring.backends.Windows.WinVaultKeyring())
 
     def setToken(self, token):
-        keyring.set_password(self._serviceName, '', token)
+        keyring.set_password(self._serviceName, 'token', token)
 
     def deleteToken(self):
         try:
-            keyring.delete_password(self._serviceName, '')
+            keyring.delete_password(self._serviceName, 'token')
         except Exception:
             raise
 
@@ -32,7 +32,7 @@ class KeyringTokenStorage():
         return bool(self.getToken())
 
     def getToken(self):
-        credential = keyring.get_credential(self._serviceName, '')
+        credential = keyring.get_credential(self._serviceName, 'token')
         if credential:
             return credential.password
         else:

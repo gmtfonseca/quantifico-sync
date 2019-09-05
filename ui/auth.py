@@ -9,7 +9,7 @@ from quantisync.core.auth import InvalidUser
 def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
     return AuthPresenter(AuthFactory.getKeyringAuth(),
-                         AuthDialog(parent, 'Quantifico', icon=icon),
+                         AuthDialog(parent, 'QuantiSync', icon=icon),
                          AuthInteractor())
 
 
@@ -23,7 +23,7 @@ class AuthDialog(wx.Dialog):
     def _initLayout(self):
         self.SetBackgroundColour("white")
 
-        title = wx.StaticText(self, -1, 'Configurar o Quantifico', (20, 120))
+        title = wx.StaticText(self, -1, 'Configurar o QuantiSync', (20, 120))
         title.SetForegroundColour('#a29bfe')
         font = wx.Font(wx.FontInfo(25).FaceName("Calibri Light"))
         title.SetFont(font)
@@ -67,7 +67,7 @@ class AuthDialog(wx.Dialog):
 
     def showInvalidUserDialog(self):
         dlg = wx.MessageDialog(self, 'Email ou senha inválida',
-                               'Quantifico',
+                               'QuantiSync',
                                wx.OK | wx.ICON_INFORMATION
                                )
         dlg.ShowModal()
@@ -75,7 +75,7 @@ class AuthDialog(wx.Dialog):
 
     def showNoConnectionDialog(self):
         dlg = wx.MessageDialog(self, 'Não foi possível se conectar com o servidor',
-                               'Quantifico',
+                               'QuantiSync',
                                wx.OK | wx.ICON_ERROR
                                )
         dlg.ShowModal()

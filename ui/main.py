@@ -25,7 +25,7 @@ class MainFrame(wx.Frame):
 
     def showInvalidNfDirDialog(self):
         dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
-                               'Quantifico',
+                               'QuantiSync',
                                wx.OK | wx.ICON_INFORMATION
                                )
         dlg.ShowModal()

@@ -1,22 +1,25 @@
 import wx
 
+from ui.assets import icons
 from quantisync.core.settings import SettingsSerializer
 from quantisync.lib.factory import AuthFactory
 from ui import globals
 
 
 def show(parent):
+    icon = wx.Icon(str(icons.CLOUD))
     return SettingsPresenter(SettingsSerializer(),
                              AuthFactory.getKeyringAuth(),
-                             SettingsDialog(parent),
+                             SettingsDialog(parent, icon=icon),
                              SettingsInteractor())
 
 
 class SettingsDialog(wx.Dialog):
 
-    def __init__(self, parent, title='Quantifico'):
+    def __init__(self, parent, icon, title='QuantiSync'):
         super(SettingsDialog, self).__init__(parent, title=title)
         self._initLayout()
+        self.SetIcon(icon)
 
     def _initLayout(self):
         self.notebook = wx.Notebook(self)
@@ -77,7 +80,7 @@ class SettingsDialog(wx.Dialog):
         dlg.Destroy()
 
     def showUnlinkAccountDialog(self):
-        dlg = wx.MessageDialog(self, 'Realmente deseja desvincular este computador?', 'Quantifico', style=wx.YES_NO)
+        dlg = wx.MessageDialog(self, 'Realmente deseja desvincular este computador?', 'QuantiSync', style=wx.YES_NO)
         confirm = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
         return confirm
