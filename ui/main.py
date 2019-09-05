@@ -6,6 +6,7 @@ from ui import taskbar
 from ui import auth
 from ui import settings
 from ui import globals
+import asyncio
 
 
 def start():
@@ -48,17 +49,23 @@ class MainPresenter:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
 
+    async def startSyncAfter(self, delay=60):
+        await asyncio.sleep(delay)
+        self.startSync()
+
     def updateSyncApp(self, evt):
         if evt.isFatal():
             globals.syncManager.abortSync()
 
         syncState = evt.getState()
-        self.updateTaskBarIcon(syncState)
-        self.handleUnauthorized(syncState)
 
-    def handleUnauthorized(self, syncState):
+        self.updateTaskBarIcon(syncState)
+
         if syncState == State.UNAUTHORIZED:
             auth.show(self._view)
+
+        if syncState == State.NO_CONNECTION:
+            asyncio.run(self.startSyncAfter())
 
     def updateTaskBarIcon(self, syncState):
         self._view.getTaskBarIcon().updateView(syncState)

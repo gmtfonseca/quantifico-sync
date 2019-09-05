@@ -73,6 +73,14 @@ class AuthDialog(wx.Dialog):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def showNoConnectionDialog(self):
+        dlg = wx.MessageDialog(self, 'Não foi possível se conectar com o servidor',
+                               'Quantifico',
+                               wx.OK | wx.ICON_ERROR
+                               )
+        dlg.ShowModal()
+        dlg.Destroy()
+
     def getEmail(self):
         return self.txtEmail.GetValue()
 
@@ -83,7 +91,7 @@ class AuthDialog(wx.Dialog):
         self.Destroy()
 
     def start(self):
-        self.Show()
+        self.ShowModal()
         self.CenterOnScreen()
 
 
@@ -101,6 +109,8 @@ class AuthPresenter:
             self._view.quit()
         except InvalidUser:
             self._view.showInvalidUserDialog()
+        except Exception:
+            self._view.showNoConnectionDialog()
 
 
 class AuthInteractor:

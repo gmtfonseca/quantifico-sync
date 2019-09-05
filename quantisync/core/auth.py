@@ -3,7 +3,6 @@ from http import HTTPStatus
 from requests.exceptions import HTTPError
 import keyring.backends.Windows
 import keyring
-keyring.set_keyring(keyring.backends.Windows.WinVaultKeyring())
 
 
 class InvalidUser(Exception):
@@ -18,6 +17,7 @@ class KeyringTokenStorage():
 
     def __init__(self, serviceName):
         self._serviceName = serviceName
+        keyring.set_keyring(keyring.backends.Windows.WinVaultKeyring())
 
     def setToken(self, token):
         keyring.set_password(self._serviceName, '', token)
@@ -26,7 +26,7 @@ class KeyringTokenStorage():
         try:
             keyring.delete_password(self._serviceName, '')
         except Exception:
-            pass
+            raise
 
     def hasToken(self):
         return bool(self.getToken())

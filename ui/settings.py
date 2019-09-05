@@ -90,7 +90,7 @@ class SettingsDialog(wx.Dialog):
 
     def start(self):
         self.CenterOnScreen()
-        self.Show()
+        self.ShowModal()
 
     def quit(self):
         self.Destroy()
