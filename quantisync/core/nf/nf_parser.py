@@ -14,8 +14,11 @@ def xmlToDict(xml):
 
 def removeUnusedTags(parsedNf):
     nfWithoutUnusedTags = parsedNf
-    del nfWithoutUnusedTags['nfeProc']['NFe']['Signature']
-    del nfWithoutUnusedTags['nfeProc']['protNFe']
+    try:
+        del nfWithoutUnusedTags['nfeProc']['NFe']['Signature']
+        del nfWithoutUnusedTags['nfeProc']['protNFe']
+    except Exception:
+        pass
     return nfWithoutUnusedTags
 
 
@@ -29,6 +32,7 @@ class NfParser:
             with open(path, 'r') as arquivo:
                 xml = arquivo.read()
                 nf = xmlToDict(xml)
+
                 nfWithoutUnusedTags = removeUnusedTags(nf)
                 return nfWithoutUnusedTags
         except (ExpatError, KeyError):

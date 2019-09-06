@@ -19,9 +19,12 @@ class LocalFolder:
 
     def refresh(self):
         files = Dir(self._path).files(self._extension)
-        self._snapshot = {Properties(File(f).name(),
-                                     File(f).modified()).getState()
-                          for f in files}
+        self._snapshot = set()
+        for f in files:
+            if File(f).exists():
+                self._snapshot.add(Properties(File(f).name(),
+                                              File(f).modified())
+                                   .getState())
 
     def addToBlacklistFromPath(self, path):
         invalidFile = File(path)
