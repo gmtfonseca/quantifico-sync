@@ -6,8 +6,7 @@ from wx.adv import TaskBarIcon
 from quantisync.core.sync import State
 from quantisync.core.settings import SettingsSerializer
 from ui.assets import icons, messages
-from ui import settings
-from ui import globals
+from ui import settings, menu, globals
 
 
 def create(frame):
@@ -52,6 +51,9 @@ class TaskBarPresenter:
     def showPopupMenu(self):
         self._view.PopupMenu(self._view.popupMenu)
 
+    def showMenu(self):
+        menu.show(self._view.getFrame())
+
     def openSyncFolder(self):
         settings = self._settingsSerializer.load()
         os.system('start {}'.format(settings.nfsDir))
@@ -90,7 +92,8 @@ class TaskBarInteractor:
         self._presenter.showPopupMenu()
 
     def OnLeftClickTaskBarIcon(self, evt):
-        self._presenter.openSyncFolder()
+        self._presenter.showMenu()
+        # self._presenter.openSyncFolder()
 
     def OnSettings(self, evt):
         self._presenter.showSettings()
