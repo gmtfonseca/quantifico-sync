@@ -1,11 +1,11 @@
 import wx
 
+from quantisync.config import storage
+from quantisync.lib.factory import SyncFactory
 from quantisync.core.sync import InvalidSettings, State
+from quantisync.core.snapshot import BlacklistedFolder, CloudFolder
 from ui.events import EVT_SYNC
-from ui import taskbar
-from ui import auth
-from ui import settings
-from ui import globals
+from ui import taskbar, menu, auth, settings, globals
 import asyncio
 
 
@@ -21,7 +21,6 @@ class MainFrame(wx.Frame):
 
     def __init__(self):
         super(MainFrame, self).__init__(None)
-        self._taskBarIcon = taskbar.create(self)
 
     def showInvalidNfDirDialog(self):
         dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
@@ -31,23 +30,28 @@ class MainFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def getTaskBarIcon(self):
-        return self._taskBarIcon
-
 
 class MainPresenter:
     def __init__(self, view, interactor):
         self._view = view
         interactor.Install(self, self._view)
+        cloudFolder = CloudFolder(storage.CLOUD_FOLDER_PATH)
+        blacklistedFolder = BlacklistedFolder(storage.BLACKLISTED_FOLDER_PATH)
+        self._menu = menu.create(self._view, cloudFolder, blacklistedFolder)
+        self._taskBarIcon = taskbar.create(self._view, self._menu)
+        self.createSync(cloudFolder, blacklistedFolder)
         self.startSync()
 
-    def startSync(self):
+    def createSync(self, cloudFolder, blacklistedFolder):
+        syncFactory = SyncFactory(self._view, cloudFolder, blacklistedFolder)
         try:
-            globals.createSyncManager(self._view)
-            globals.syncManager.startSync()
+            globals.createSyncManager(syncFactory)
         except InvalidSettings:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
+
+    def startSync(self):
+        globals.syncManager.startSync()
 
     async def startSyncAfter(self, delay=60):
         await asyncio.sleep(delay)
@@ -60,15 +64,19 @@ class MainPresenter:
         syncState = evt.getState()
 
         self.updateTaskBarIcon(syncState)
+        self.updateMenu(syncState)
 
         if syncState == State.UNAUTHORIZED:
             auth.show(self._view)
 
-        if syncState == State.NO_CONNECTION:
-            asyncio.run(self.startSyncAfter())
+        # if syncState == State.NO_CONNECTION:
+            # asyncio.run(self.startSyncAfter())
 
     def updateTaskBarIcon(self, syncState):
-        self._view.getTaskBarIcon().updateView(syncState)
+        self._taskBarIcon.updateView(syncState)
+
+    def updateMenu(self, syncState):
+        self._menu.updateModel(syncState)
 
 
 class MainInteractor:

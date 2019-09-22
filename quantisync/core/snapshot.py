@@ -1,6 +1,5 @@
 import pickle
 from pathlib import Path
-from copy import copy
 
 from quantisync.core.file import Properties
 from quantisync.lib.util import File, Dir
@@ -35,22 +34,26 @@ class LocalFolder:
         fileProperties = Properties.fromState(state)
         self._blacklistedFolder.addFile(fileProperties)
 
-    def removeFromBlacklistIfExists(self, fileName):
-        if self._blacklistedFolder.hasFile(fileName):
-            self._blacklistedFolder.removeFile(fileName)
+    def cleanBlacklistedGhostFiles(self):
+        blacklistedGhostFiles = self.getBlacklistedGhostFiles()
+        for f in blacklistedGhostFiles:
+            self._blacklistedFolder.removeFile(f)
 
-    def removeGhostFilesFromBlacklist(self):
-        '''
-        Remove arquivos que estão na blacklist e não existem mais no FileSystem
-        Este cenário acontece quando arquivos que não foram importados por alguma
-        razão e foram removidos pelo usuário
-        '''
-        blacklistedFiles = copy(self._blacklistedFolder.getFiles())
-        for f in blacklistedFiles:
+    def getBlacklistedGhostFiles(self):
+        blacklistedGhostFiles = []
+        for f in self._blacklistedFolder.getFiles():
             filePath = Path(self._path) / f
             invalidFile = File(filePath)
             if not invalidFile.exists():
-                self._blacklistedFolder.removeFile(f)
+                blacklistedGhostFiles.append(f)
+        return blacklistedGhostFiles
+
+    def hasBlacklistedGhostFiles(self):
+        for f in self._blacklistedFolder.getFiles():
+            filePath = Path(self._path) / f
+            invalidFile = File(filePath)
+            if not invalidFile.exists():
+                return True
 
     def getSnapshot(self):
         return self._snapshot - self.getInvalidSnapshot()
@@ -110,6 +113,9 @@ class CloudFolder(SerializableFolder):
     def getSnapshot(self):
         return self._snapshot
 
+    def getTotalFiles(self):
+        return len(self._snapshot)
+
 
 class BlacklistedFolder(SerializableFolder):
     '''
@@ -138,6 +144,9 @@ class BlacklistedFolder(SerializableFolder):
             return set()
 
         return set(self._files.keys())
+
+    def getTotalFiles(self):
+        return len(self._files)
 
     def getSnapshot(self):
         if not self._files:
@@ -169,13 +178,16 @@ class Observer:
         self._deletions = self._cloudFolder.getSnapshot() - self._localFolder.getSnapshot()
 
     def hasChanged(self):
-        return self.hasInsertions() or self.hasDeletions()
+        return self.hasInsertions() or self.hasDeletions() or self.hasBlacklistedGhostFiles()
 
     def hasInsertions(self):
         return len(self._insertions) > 0
 
     def hasDeletions(self):
         return len(self._deletions) > 0
+
+    def hasBlacklistedGhostFiles(self):
+        return self._localFolder.hasBlacklistedGhostFiles()
 
     def getInsertions(self):
         return self._insertions

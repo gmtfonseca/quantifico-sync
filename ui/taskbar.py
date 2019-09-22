@@ -1,16 +1,15 @@
-import os
-
 import wx
 from wx.adv import TaskBarIcon
 
 from quantisync.core.sync import State
 from quantisync.core.settings import SettingsSerializer
 from ui.assets import icons, messages
-from ui import settings, menu, globals
+from ui import settings, globals
 
 
-def create(frame):
-    return TaskBarPresenter(SettingsSerializer(),
+def create(frame, menu):
+    return TaskBarPresenter(menu,
+                            SettingsSerializer(),
                             TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'QuantiSync\nAtualizado'),
                             TaskBarInteractor())
 
@@ -40,9 +39,10 @@ class TaskBarIconView(TaskBarIcon):
 
 
 class TaskBarPresenter:
-    def __init__(self, settingsSerializer, view, interactor):
-        self._view = view
+    def __init__(self, menu, settingsSerializer, view, interactor):
+        self._menu = menu
         self._settingsSerializer = settingsSerializer
+        self._view = view
         interactor.Install(self, self._view)
 
     def showSettings(self):
@@ -52,11 +52,7 @@ class TaskBarPresenter:
         self._view.PopupMenu(self._view.popupMenu)
 
     def showMenu(self):
-        menu.show(self._view.getFrame())
-
-    def openSyncFolder(self):
-        settings = self._settingsSerializer.load()
-        os.system('start {}'.format(settings.nfsDir))
+        self._menu.show()
 
     def updateView(self, state):
         if (state == State.SYNCING):
@@ -93,7 +89,6 @@ class TaskBarInteractor:
 
     def OnLeftClickTaskBarIcon(self, evt):
         self._presenter.showMenu()
-        # self._presenter.openSyncFolder()
 
     def OnSettings(self, evt):
         self._presenter.showSettings()

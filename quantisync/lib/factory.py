@@ -1,11 +1,9 @@
 class NfsFactory:
     @classmethod
-    def getObserver(cls, dirNfs, cloudFolderPath, blacklistedFolderPath):
-        from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder, Observer
+    def getObserver(cls, dirNfs, cloudFolder, blacklistedFolder):
+        from quantisync.core.snapshot import LocalFolder, Observer
 
-        blacklistedFolder = BlacklistedFolder(blacklistedFolderPath)
         localFolder = LocalFolder(dirNfs, 'XML', blacklistedFolder)
-        cloudFolder = CloudFolder(cloudFolderPath)
         return Observer(localFolder, cloudFolder)
 
     @classmethod
@@ -37,11 +35,12 @@ class AuthFactory:
 
 class SyncFactory:
 
-    def __init__(self, view):
+    def __init__(self, view, cloudFolder, blacklistedFolder):
         self._view = view
+        self._cloudFolder = cloudFolder
+        self._blacklistedFolder = blacklistedFolder
 
     def getDefaultSync(self):
-        from quantisync.config.storage import CLOUD_FOLDER_PATH, BLACKLISTED_FOLDER_PATH
         from quantisync.core.settings import SettingsSerializer
         from quantisync.core.sync import Sync, InvalidSettings
 
@@ -52,6 +51,6 @@ class SyncFactory:
         if not settings.nfsDir:
             raise InvalidSettings()
 
-        nfsObserver = NfsFactory.getObserver(settings.nfsDir, CLOUD_FOLDER_PATH, BLACKLISTED_FOLDER_PATH)
+        nfsObserver = NfsFactory.getObserver(settings.nfsDir, self._cloudFolder, self._blacklistedFolder)
         nfsHandler = NfsFactory.getHandler()
         return Sync(self._view, nfsObserver, nfsHandler, DELAY)

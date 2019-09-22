@@ -79,7 +79,7 @@ class Sync(Thread):
     def _handleChanges(self):
         try:
             self._postSyncEvent(State.SYNCING)
-            self._handleInsertionsAndDeletions()
+            self._handleSync()
             self._postSyncEvent(State.NORMAL)
         except (NewConnectionError, ConnectionError):
             self._postSyncEvent(State.NO_CONNECTION, True)
@@ -87,11 +87,13 @@ class Sync(Thread):
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
                 self._postSyncEvent(State.UNAUTHORIZED, True)
 
-    def _handleInsertionsAndDeletions(self):
+    def _handleSync(self):
         if self._observer.hasDeletions():
             self._handleDeletions()
         if self._observer.hasInsertions():
             self._handleInsertions()
+        if self._observer.hasBlacklistedGhostFiles():
+            self._handleBlacklistedGhostFiles()
 
     def _handleInsertions(self):
         logging.debug('Inserindo')
@@ -103,6 +105,15 @@ class Sync(Thread):
         logging.debug('Removendo')
         self._handler.onDelete(self._observer.getCloudFolder(),
                                self._observer.getDeletions())
+
+    def _handleBlacklistedGhostFiles(self):
+        '''
+        Remove arquivos que estão na blacklist e não existem mais no FileSystem
+        Este cenário acontece quando arquivos que não foram importados por alguma
+        razão foram removidos pelo usuário
+        '''
+        logging.debug('Ghost files')
+        self._observer.getLocalFolder().cleanBlacklistedGhostFiles()
 
     def _postSyncEvent(self, state, isFatal=False):
         evt = SyncEvent(myEVT_SYNC, -1, state, isFatal)
