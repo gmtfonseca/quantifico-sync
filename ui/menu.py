@@ -19,6 +19,8 @@ class MenuFrame(wx.Frame):
 
     def __init__(self, parent, title='QuantiSync'):
         super(MenuFrame, self).__init__(parent, title=title, size=(300, 130))
+        self._parent = parent
+        self._createSettingsPopupMenu()
         self._initLayout()
 
     def _initLayout(self):
@@ -68,7 +70,7 @@ class MenuFrame(wx.Frame):
         userSizer.Add(txtEmail)
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(self.btnFolder, wx.SizerFlags(0).Border(wx.RIGHT, 15)),
+        btnSizer.Add(self.btnFolder, wx.SizerFlags(0).Border(wx.RIGHT, 10)),
         btnSizer.Add(self.btnSettings)
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -89,12 +91,14 @@ class MenuFrame(wx.Frame):
                                              (bpmSuccess.GetWidth(), bpmSuccess.GetHeight()))
         self.txtSuccess = wx.StaticText(panel, -1, '')
         self.txtSuccess.SetFont(fontStatus)
+        self.setSuccessfulCounterTooltip('Notas Fiscais sincronizadas com sucesso')
 
         bpmFailure = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
         self.stcBpmFailure = wx.StaticBitmap(panel, -1, bpmFailure, (10, 5),
                                              (bpmFailure.GetWidth(), bpmFailure.GetHeight()))
         self.txtFailure = wx.StaticText(panel, -1, '')
         self.txtFailure.SetFont(fontStatus)
+        self.setFailureCounterTooltip('Notas Fiscais com falha de sincronização')
 
         successSizer = wx.BoxSizer(wx.HORIZONTAL)
         successSizer.Add(self.stcBpmSuccess)
@@ -129,14 +133,31 @@ class MenuFrame(wx.Frame):
         panel.SetSizer(panelSizer)
         return panel
 
+    def _createSettingsPopupMenu(self):
+        self.settingsPopupMenu = wx.Menu()
+        self.menuItemSettings = self.settingsPopupMenu.Append(-1, 'Configurações')
+        self.settingsPopupMenu.AppendSeparator()
+        self.menuItemExit = self.settingsPopupMenu.Append(wx.ID_EXIT, 'Sair')
+
+    def showSettingsPopupMenu(self):
+        self.btnSettings.PopupMenu(self.settingsPopupMenu)
+
     def setStatus(self, status):
         self.txtStatus.SetLabel(status)
 
     def setSuccessfulCounter(self, count):
         self.txtSuccess.SetLabel(str(count))
 
+    def setSuccessfulCounterTooltip(self, tooltip):
+        self.txtSuccess.SetToolTip(tooltip)
+        self.stcBpmSuccess.SetToolTip(tooltip)
+
     def setFailureCounter(self, count):
         self.txtFailure.SetLabel(str(count))
+
+    def setFailureCounterTooltip(self, tooltip):
+        self.txtFailure.SetToolTip(tooltip)
+        self.stcBpmFailure.SetToolTip(tooltip)
 
     def setOfflineIcons(self):
         bpmSuccess = wx.Bitmap(str(icons.SUCCESS_GRAYSCALE), wx.BITMAP_TYPE_PNG)
@@ -150,13 +171,22 @@ class MenuFrame(wx.Frame):
         bpmFailure = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
         self.stcBpmFailure.SetBitmap(bpmFailure)
 
+    def destroy(self):
+        wx.CallAfter(self._parent.Destroy)
+
+    def alignToBottomRight(self):
+        _, _, _, dh = wx.ClientDisplayRect()
+        position = wx.GetMousePosition()
+
+        w, h = self.GetSize()
+        x = position[0] - (w / 2)
+        y = dh - h
+        self.SetPosition((x, y))
+
     def start(self):
-        alignToBottomRight(self)
+        self.alignToBottomRight()
         self.Raise()
         self.Show()
-
-    def quit(self):
-        self.Destroy()
 
 
 class MenuPresenter:
@@ -210,15 +240,21 @@ class MenuPresenter:
         self._failure = self._blacklistedFolder.getTotalFiles()
 
     def openSyncFolder(self):
-        settings = self._settingsSerializer.load()
-        os.system('start {}'.format(settings.nfsDir))
+        settingsInfo = self._settingsSerializer.load()
+        os.system('start {}'.format(settingsInfo.nfsDir))
+
+    def showSettingsPopupMenu(self):
+        self._view.showSettingsPopupMenu()
 
     def showSettings(self):
-        settings.show(None)
+        settings.show(self._view)
 
     def closeIfInactive(self, evt):
-        if not evt.GetActive():
+        if self._view and not evt.GetActive():
             self._view.Hide()
+
+    def quit(self):
+        self._view.destroy()
 
 
 class MenuInteractor:
@@ -227,12 +263,17 @@ class MenuInteractor:
         self._presenter = presenter
         self._view = view
 
-        self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnFolder)
-        self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnSettings)
         self._view.Bind(wx.EVT_ACTIVATE, self.OnActivate)
+        self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnFolder)
+        self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnSettingsPopupMenu)
+        self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
+        self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnSettings, self._view.menuItemSettings)
 
     def OnFolder(self, evt):
         self._presenter.openSyncFolder()
+
+    def OnSettingsPopupMenu(self, evt):
+        self._presenter.showSettingsPopupMenu()
 
     def OnSettings(self, evt):
         self._presenter.showSettings()
@@ -240,12 +281,5 @@ class MenuInteractor:
     def OnActivate(self, evt):
         self._presenter.closeIfInactive(evt)
 
-
-def alignToBottomRight(frame):
-    _, _, _, dh = wx.ClientDisplayRect()
-    position = wx.GetMousePosition()
-
-    w, h = frame.GetSize()
-    x = position[0] - (w / 2)
-    y = dh - h
-    frame.SetPosition((x, y))
+    def OnExit(self, evt):
+        self._presenter.quit()

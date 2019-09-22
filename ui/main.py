@@ -30,6 +30,9 @@ class MainFrame(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def destroy(self):
+        wx.CallAfter(self.Destroy)
+
 
 class MainPresenter:
     def __init__(self, view, interactor):
@@ -78,13 +81,21 @@ class MainPresenter:
     def updateMenu(self, syncState):
         self._menu.updateModel(syncState)
 
+    def removeTaskBarIcon(self):
+        self._taskBarIcon.quit()
+
 
 class MainInteractor:
     def Install(self, presenter, view):
         self._presenter = presenter
         self._view = view
 
+        self._view.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
 
     def OnUpdateSyncState(self, evt):
         self._presenter.updateSyncApp(evt)
+
+    def OnDestroy(self, evt):
+        globals.syncManager.abortSync()
+        self._presenter.removeTaskBarIcon()

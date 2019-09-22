@@ -34,6 +34,10 @@ class LocalFolder:
         fileProperties = Properties.fromState(state)
         self._blacklistedFolder.addFile(fileProperties)
 
+    def removeFromBlacklistIfExists(self, fileName):
+        if self._blacklistedFolder.hasFile(fileName):
+            self._blacklistedFolder.removeFile(fileName)
+
     def cleanBlacklistedGhostFiles(self):
         blacklistedGhostFiles = self.getBlacklistedGhostFiles()
         for f in blacklistedGhostFiles:

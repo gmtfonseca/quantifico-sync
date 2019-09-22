@@ -47,6 +47,7 @@ class NfInsertionStrategy:
             try:
                 insertedNf = self._initNfFromState(i)
                 self._insertedNfsQueue.enqueue(insertedNf.toDict())
+                self._localFolder.removeFromBlacklistIfExists(insertedNf.fileProperties.name)
             except InvalidNf as e:
                 self._localFolder.addToBlacklistFromPath(e.filePath)
                 self._updateOverlayIcons()

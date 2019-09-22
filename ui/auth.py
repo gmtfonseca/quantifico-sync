@@ -91,8 +91,8 @@ class AuthDialog(wx.Dialog):
         self.Destroy()
 
     def start(self):
-        self.ShowModal()
         self.CenterOnScreen()
+        self.ShowModal()
 
 
 class AuthPresenter:

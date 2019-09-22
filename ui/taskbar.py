@@ -4,7 +4,6 @@ from wx.adv import TaskBarIcon
 from quantisync.core.sync import State
 from quantisync.core.settings import SettingsSerializer
 from ui.assets import icons, messages
-from ui import settings, globals
 
 
 def create(frame, menu):
@@ -17,24 +16,12 @@ def create(frame, menu):
 class TaskBarIconView(TaskBarIcon):
     def __init__(self, frame, icon, tooltip):
         TaskBarIcon.__init__(self)
-        self._frame = frame
-        self._createPopupMenu()
         self.setIcon(icon, tooltip)
-
-    def _createPopupMenu(self):
-        self.popupMenu = wx.Menu()
-        self.menuItemSettings = self.popupMenu.Append(-1, 'Configurações')
-        self.popupMenu.AppendSeparator()
-        self.menuItemExit = self.popupMenu.Append(wx.ID_EXIT, 'Sair')
 
     def setIcon(self, icon, tooltip):
         self.SetIcon(icon, tooltip)
 
-    def getFrame(self):
-        return self._frame
-
     def destroy(self):
-        wx.CallAfter(self._frame.Destroy)
         wx.CallAfter(self.Destroy)
 
 
@@ -44,12 +31,6 @@ class TaskBarPresenter:
         self._settingsSerializer = settingsSerializer
         self._view = view
         interactor.Install(self, self._view)
-
-    def showSettings(self):
-        settings.show(self._view.getFrame())
-
-    def showPopupMenu(self):
-        self._view.PopupMenu(self._view.popupMenu)
 
     def showMenu(self):
         self._menu.show()
@@ -69,7 +50,6 @@ class TaskBarPresenter:
             self._view.setIcon(icon, messages.UNAUTHORIZED_USER)
 
     def quit(self):
-        globals.syncManager.abortSync()
         self._view.destroy()
 
 
@@ -81,17 +61,9 @@ class TaskBarInteractor:
 
         self._view.Bind(wx.adv.EVT_TASKBAR_RIGHT_UP, self.OnRightClickTaskBarIcon)
         self._view.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.OnLeftClickTaskBarIcon)
-        self._view.popupMenu.Bind(wx.EVT_MENU, self.OnSettings, self._view.menuItemSettings)
-        self._view.popupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
 
     def OnRightClickTaskBarIcon(self, evt):
-        self._presenter.showPopupMenu()
+        self._presenter.showMenu()
 
     def OnLeftClickTaskBarIcon(self, evt):
         self._presenter.showMenu()
-
-    def OnSettings(self, evt):
-        self._presenter.showSettings()
-
-    def OnExit(self, evt):
-        self._presenter.quit()
