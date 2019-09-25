@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from http import HTTPStatus
+from datetime import datetime
 
 from quantisync.lib.network import HttpStreamQueue, HttpDeleteQueue
 from quantisync.lib.shell import ShellIcon
@@ -14,19 +15,25 @@ class NfHandler():
     Responsável em realizar ações em cima de mudanças de estado entre Cliente e Servidor
     '''
 
-    def __init__(self, httpService):
+    def __init__(self, httpService, settingsModel):
         self._httpService = httpService
+        self._settingsModel = settingsModel
 
     def onInsert(self, localFolder, cloudFolder, insertions):
         nfInsertionStrategy = NfInsertionStrategy(self._httpService,
                                                   localFolder,
                                                   cloudFolder)
         nfInsertionStrategy.insert(insertions)
+        self._updateLastSyncDate()
 
     def onDelete(self, cloudFolder, deletions):
         nfDeletionStrategy = NfDeletionStrategy(self._httpService,
                                                 cloudFolder)
         nfDeletionStrategy.delete(deletions)
+        self._updateLastSyncDate()
+
+    def _updateLastSyncDate(self):
+        self._settingsModel.setLastSync(datetime.now())
 
 
 class NfInsertionStrategy:

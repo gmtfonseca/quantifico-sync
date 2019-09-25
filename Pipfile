@@ -14,7 +14,7 @@ requests = "*"
 xmltodict = "*"
 keyring = "*"
 pypiwin32 = "*"
-keyring-alt = "*"
+peewee = "*"
 
 [requires]
 python_version = "3.7"

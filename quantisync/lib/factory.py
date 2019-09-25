@@ -9,10 +9,11 @@ class NfsFactory:
     @classmethod
     def getHandler(cls):
         from quantisync.lib.network import HttpService
+        from quantisync.core.model import SettingsModel
         from quantisync.core.nf.nf_handler import NfHandler
 
         httpService = HttpService('sync/nfs')
-        return NfHandler(httpService)
+        return NfHandler(httpService, SettingsModel)
 
 
 class AuthFactory:
