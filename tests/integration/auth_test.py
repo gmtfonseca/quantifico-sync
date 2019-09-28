@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+
 
 # from requests.exceptions import HTTPError
 
@@ -11,7 +12,6 @@ class KeyringAuthTest(unittest.TestCase):
 
     def setUp(self):
         httpService = Mock()
-        httpService.post.return_value = 'valid_token'
         keyringTokenStorage = KeyringTokenStorage('test')
         self.auth = Auth(httpService, keyringTokenStorage)
 
@@ -22,15 +22,17 @@ class KeyringAuthTest(unittest.TestCase):
         with self.assertRaises(EmptyEmail):
             self.auth.signin('', '')
 
-    def test_token_update_when_signin(self):
+    @patch('quantisync.core.auth.Auth._requestSession')
+    def test_token_update_when_signin(self, _requestSession):
         """
         Signin deve atualizar token corretamente
         """
-        token = self.auth.signin('gustavo', '1234')
-        self.assertEqual(token, 'valid_token')
+        _requestSession.return_value = {'token': 'valid_token'}
+        self.auth.signin('gustavo', '1234')
         self.assertEqual(self.auth.getToken(), 'valid_token')
 
-    def test_token_update_when_signout(self):
+    @patch('quantisync.core.auth.Auth._requestSession')
+    def test_token_update_when_signout(self, _requestSession):
         """
         Signout deve remover token corretamente
         """

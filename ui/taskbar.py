@@ -2,13 +2,11 @@ import wx
 from wx.adv import TaskBarIcon
 
 from quantisync.core.sync import State
-from quantisync.core.settings import SettingsSerializer
 from ui.assets import icons, messages
 
 
 def create(frame, menu):
     return TaskBarPresenter(menu,
-                            SettingsSerializer(),
                             TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'QuantiSync\nAtualizado'),
                             TaskBarInteractor())
 
@@ -26,9 +24,8 @@ class TaskBarIconView(TaskBarIcon):
 
 
 class TaskBarPresenter:
-    def __init__(self, menu, settingsSerializer, view, interactor):
+    def __init__(self, menu, view, interactor):
         self._menu = menu
-        self._settingsSerializer = settingsSerializer
         self._view = view
         interactor.Install(self, self._view)
 

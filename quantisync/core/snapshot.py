@@ -25,14 +25,13 @@ class LocalFolder:
                                               File(f).modified())
                                    .getState())
 
-    def addToBlacklistFromPath(self, path):
-        invalidFile = File(path)
-        fileProperties = Properties(invalidFile.name(), invalidFile.modified())
-        self._blacklistedFolder.addFile(fileProperties)
+    def addToBlacklistFromPath(self, path, reason):
+        fileProperties = Properties.fromPath(path)
+        self._blacklistedFolder.addFile(fileProperties, reason)
 
-    def addToBlacklistFromState(self, state):
+    def addToBlacklistFromState(self, state, reason):
         fileProperties = Properties.fromState(state)
-        self._blacklistedFolder.addFile(fileProperties)
+        self._blacklistedFolder.addFile(fileProperties, reason)
 
     def removeFromBlacklistIfExists(self, fileName):
         if self._blacklistedFolder.hasFile(fileName):
@@ -131,9 +130,12 @@ class BlacklistedFolder(SerializableFolder):
         super().__init__(path)
         self._files = self.initialize(dict())
 
-    def addFile(self, fileProperties):
-        if fileProperties:
-            self._files[fileProperties.name] = fileProperties.getState()
+    def getReason(self, fileName):
+        return self._files[fileName].reason
+
+    def addFile(self, fileProperties, reason):
+        if fileProperties and reason:
+            self._files[fileProperties.name] = [fileProperties.getState(), reason]
             self.saveToDisk(self._files)
 
     def removeFile(self, fileName):
@@ -156,7 +158,8 @@ class BlacklistedFolder(SerializableFolder):
         if not self._files:
             return set()
 
-        return set(self._files.values())
+        snapshot = set(f[0] for f in list(self._files.values()))
+        return snapshot
 
 
 class Observer:

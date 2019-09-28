@@ -42,13 +42,13 @@ class MainPresenter:
         blacklistedFolder = BlacklistedFolder(storage.BLACKLISTED_FOLDER_PATH)
         self._menu = menu.create(self._view, cloudFolder, blacklistedFolder)
         self._taskBarIcon = taskbar.create(self._view, self._menu)
-        self.createSync(cloudFolder, blacklistedFolder)
-        self.startSync()
+        self.createSyncAndStart(cloudFolder, blacklistedFolder)
 
-    def createSync(self, cloudFolder, blacklistedFolder):
+    def createSyncAndStart(self, cloudFolder, blacklistedFolder):
         syncFactory = SyncFactory(self._view, cloudFolder, blacklistedFolder)
         try:
             globals.createSyncManager(syncFactory)
+            self.startSync()
         except InvalidSettings:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
@@ -61,9 +61,6 @@ class MainPresenter:
         self.startSync()
 
     def updateSyncApp(self, evt):
-        if evt.isFatal():
-            globals.syncManager.abortSync()
-
         syncState = evt.getState()
 
         self.updateTaskBarIcon(syncState)

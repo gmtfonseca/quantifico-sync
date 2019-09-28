@@ -1,50 +1,71 @@
-from peewee import CharField, DateTimeField
+import json
+from pathlib import Path
+from datetime import datetime
 
-from quantisync.lib.db import BaseModel
+from quantisync.config.storage import SYNC_DATA_PATH
+from quantisync.lib.util import Date
 
 
-class Settings:
+class SyncData:
     def __init__(self, nfsDir, userEmail, userOrg, lastSync):
         self.nfsDir = nfsDir
         self.userEmail = userEmail
         self.userOrg = userOrg
         self.lastSync = lastSync
 
-
-class SettingsModel(BaseModel):
-    class Meta:
-        table_name = 'settings'
-
-    nfs_dir = CharField(null=True)
-    user_email = CharField(null=True)
-    user_org = CharField(null=True)
-    last_sync = DateTimeField(null=True)
+    def toDict(self):
+        return vars(self)
 
     @classmethod
-    def setLastSync(cls, dateTime):
-        cls.createRecordIfEmpty()
-        cls.update({'last_sync': dateTime}).execute()
+    def fromJsonFile(cls, jsonFile):
+        jsonDict = json.load(jsonFile)
+        return cls(jsonDict['nfsDir'], jsonDict['userEmail'], jsonDict['userOrg'], jsonDict['lastSync'])
 
     @classmethod
-    def setNfsDir(cls, nfsDir):
-        cls.createRecordIfEmpty()
-        cls.update({'nfs_dir': nfsDir}).execute()
+    def empty(cls):
+        return cls('', '', '', '')
 
-    @classmethod
-    def setUser(cls, userEmail, userOrg):
-        cls.createRecordIfEmpty()
-        cls.update({'user_email': userEmail, 'user_org': userOrg}).execute()
 
-    @classmethod
-    def get(cls):
-        settings = cls.select().execute()[0]
-        return Settings(settings.nfs_dir, settings.user_email, settings.user_org, settings.last_sync)
+class SyncDataModel:
+    def __init__(self, jsonPath=SYNC_DATA_PATH):
+        self._jsonPath = Path(jsonPath)
+        self._syncData = self.load()
 
-    @classmethod
-    def createRecordIfEmpty(cls):
-        if not cls.table_exists():
-            cls.create_table()
+    def setNfsDir(self, nfsDir):
+        self._syncData.nfsDir = nfsDir
+        self.save()
 
-        settings = cls.select().execute()
-        if not settings:
-            cls.create()
+    def setUser(self, userEmail, userOrg):
+        self._syncData.userEmail = userEmail
+        self._syncData.userOrg = userOrg
+        self.save()
+
+    def setLastSync(self, lastSync):
+        self._syncData.lastSync = lastSync
+        self.save()
+
+    def getSyncData(self):
+        return self._syncData
+
+    def load(self):
+        if not self._jsonPath.exists():
+            return SyncData.empty()
+
+        with self._jsonPath.open() as f:
+            syncData = SyncData.fromJsonFile(f)
+            syncData.lastSync = Date.parseString(syncData.lastSync)
+            return syncData
+
+    def save(self):
+        if not self._jsonPath.parent.exists():
+            self._jsonPath.parent.mkdir(parents=True, exist_ok=True)
+
+        with self._jsonPath.open('w') as f:
+            json.dump(self._syncData.toDict(), f, default=self._serializer)
+
+    def _serializer(self, o):
+        if isinstance(o, datetime):
+            return o.__str__()
+
+
+syncDataModel = SyncDataModel()

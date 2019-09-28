@@ -1,8 +1,10 @@
 import unittest
 from unittest.mock import Mock
 
-from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder  # , Observer
+from quantisync.core.snapshot import LocalFolder, CloudFolder, BlacklistedFolder
+from quantisync.core.file import Properties
 from quantisync.lib.util import File
+
 
 from tests.config import FIXTURE_PATH
 
@@ -66,27 +68,33 @@ class CloudFolderTest(unittest.TestCase):
 class BlacklistedFolderTest(unittest.TestCase):
 
     def setUp(self):
-        self.path = FIXTURE_PATH / 'invalid.dat'
+        self.path = FIXTURE_PATH / 'blacklisted.dat'
 
     def tearDown(self):
         File(self.path).unlink()
 
-    def test_init(self):
-        blacklistedFolder = BlacklistedFolder(self.path)
-        self.assertEqual(blacklistedFolder.getPath(), self.path)
-        self.assertEqual(blacklistedFolder.getSnapshot(), set())
-
     def test_add(self):
         blacklistedFolder = BlacklistedFolder(self.path)
-        blacklistedFolder.addFile(nfs1['path'])
-        snapshot = set({nfs1['state']})
-        self.assertEqual(blacklistedFolder.getSnapshot(), snapshot)
+        fileName = '1.XML'
+        fileProperties = Properties(fileName, 1)
+        blacklistedFolder.addFile(fileProperties, 'Invalid')
+        self.assertTrue(blacklistedFolder.hasFile(fileName))
 
     def test_remove(self):
         blacklistedFolder = BlacklistedFolder(self.path)
-        blacklistedFolder.addFile(nfs1['path'])
-        blacklistedFolder.removeFileByState(nfs1['state'])
-        self.assertEqual(blacklistedFolder.getSnapshot(), set())
+        fileName = '1.XML'
+        fileProperties = Properties(fileName, 1)
+        blacklistedFolder.addFile(fileProperties, 'Invalid')
+        blacklistedFolder.removeFile(fileName)
+        self.assertFalse(blacklistedFolder.hasFile(fileName))
+
+    def test_get_snapshot(self):
+        snapshot = {'1.XML/1', '2.XML/1', '3.XML/1'}
+        blacklistedFolder = BlacklistedFolder(self.path)
+        blacklistedFolder.addFile(Properties('1.XML', 1), 'Invalid')
+        blacklistedFolder.addFile(Properties('2.XML', 1), 'Invalid')
+        blacklistedFolder.addFile(Properties('3.XML', 1), 'Invalid')
+        self.assertEquals(blacklistedFolder.getSnapshot(), snapshot)
 
 
 class ObserverTest(unittest.TestCase):

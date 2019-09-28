@@ -82,9 +82,11 @@ class Sync(Thread):
             self._handleSync()
             self._postSyncEvent(State.NORMAL)
         except (NewConnectionError, ConnectionError):
+            self.abort()
             self._postSyncEvent(State.NO_CONNECTION, True)
         except HTTPError as error:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
+                self.abort()
                 self._postSyncEvent(State.UNAUTHORIZED, True)
 
     def _handleSync(self):

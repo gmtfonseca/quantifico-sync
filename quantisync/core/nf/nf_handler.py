@@ -8,6 +8,7 @@ from quantisync.lib.shell import ShellIcon
 from quantisync.core.file import Properties
 from quantisync.core.nf.nf_parser import NfParser, InvalidNf
 from quantisync.core.nf.nf import Nf
+from quantisync.core.model import syncDataModel
 
 
 class NfHandler():
@@ -15,9 +16,8 @@ class NfHandler():
     Responsável em realizar ações em cima de mudanças de estado entre Cliente e Servidor
     '''
 
-    def __init__(self, httpService, settingsModel):
+    def __init__(self, httpService):
         self._httpService = httpService
-        self._settingsModel = settingsModel
 
     def onInsert(self, localFolder, cloudFolder, insertions):
         nfInsertionStrategy = NfInsertionStrategy(self._httpService,
@@ -33,7 +33,7 @@ class NfHandler():
         self._updateLastSyncDate()
 
     def _updateLastSyncDate(self):
-        self._settingsModel.setLastSync(datetime.now())
+        syncDataModel.setLastSync(datetime.now())
 
 
 class NfInsertionStrategy:
@@ -56,7 +56,7 @@ class NfInsertionStrategy:
                 self._insertedNfsQueue.enqueue(insertedNf.toDict())
                 self._localFolder.removeFromBlacklistIfExists(insertedNf.fileProperties.name)
             except InvalidNf as e:
-                self._localFolder.addToBlacklistFromPath(e.filePath)
+                self._localFolder.addToBlacklistFromPath(e.filePath, 'Nota Fiscal inválida')
                 self._updateOverlayIcons()
             except FileNotFoundError:
                 pass
@@ -81,10 +81,10 @@ class NfInsertionStrategy:
             self._handleBlacklistedFiles(response.json()['arquivosInvalidos'])
             self._updateOverlayIcons()
 
-    def _handleBlacklistedFiles(self, invalidFilesState):
-        if invalidFilesState:
-            for f in invalidFilesState:
-                self._localFolder.addToBlacklistFromState(f)
+    def _handleBlacklistedFiles(self, invalidFiles):
+        if invalidFiles:
+            for file in invalidFiles:
+                self._localFolder.addToBlacklistFromState(file['state'], file['error'])
 
     def _updateOverlayIcons(self):
         ShellIcon.updateDir(self._localFolder.getPath())

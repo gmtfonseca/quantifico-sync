@@ -1,17 +1,16 @@
 import wx
 
 from ui.assets import icons
-from quantisync.core.settings import SettingsSerializer
+from quantisync.core.model import syncDataModel
 from quantisync.lib.factory import AuthFactory
 from ui import globals
 
 
 def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
-    return SettingsPresenter(SettingsSerializer(),
-                             AuthFactory.getKeyringAuth(),
-                             SettingsDialog(parent, icon=icon),
-                             SettingsInteractor())
+    return SettingsPresenter(SettingsDialog(parent, icon=icon),
+                             SettingsInteractor(),
+                             AuthFactory.getKeyringAuth())
 
 
 class SettingsDialog(wx.Dialog):
@@ -45,12 +44,12 @@ class SettingsDialog(wx.Dialog):
         self.notebook.AddPage(panel, "Configurações")
         self.lblDirNfs = wx.StaticText(panel, label='Selecione a pasta com as Notas Fiscais')
         self.txtDirNfs = wx.TextCtrl(panel, size=(300, 25))
-        self.btnConfigurar = wx.Button(panel, label="Configurar", size=(100, 25))
+        self.btnSelectNfsDir = wx.Button(panel, label="Configurar", size=(100, 25))
 
         widgetSizer = wx.GridBagSizer(2, 4)
         widgetSizer.Add(self.lblDirNfs, pos=(0, 0))
         widgetSizer.Add(self.txtDirNfs, pos=(1, 0), span=(1, 4), flag=wx.EXPAND, border=5)
-        widgetSizer.Add(self.btnConfigurar, pos=(1, 4))
+        widgetSizer.Add(self.btnSelectNfsDir, pos=(1, 4))
 
         settingsSizer = wx.BoxSizer(wx.VERTICAL)
         settingsSizer.Add(widgetSizer, wx.SizerFlags(0).Border(wx.ALL, 5))
@@ -102,27 +101,28 @@ class SettingsDialog(wx.Dialog):
 
 class SettingsPresenter:
 
-    def __init__(self, settingsSerializer, auth, view, interactor):
-        self._settingsSerializer = settingsSerializer
-        self._auth = auth
+    def __init__(self, view, interactor, auth):
+
         self._view = view
         interactor.Install(self, self._view)
+        self._auth = auth
         self._initView()
         self._view.start()
 
     def _initView(self):
-        self._settings = self._settingsSerializer.load()
+        syncData = syncDataModel.getSyncData()
+        self._nfsDir = syncData.nfsDir
         self._loadViewFromModel()
 
     def _loadViewFromModel(self):
-        self._view.setDirNfs(self._settings.nfsDir)
+        self._view.setDirNfs(self._nfsDir)
 
     def selectDirNfs(self):
         self._view.showDirNfsDialog()
 
     def updateModel(self):
-        self._settings.nfsDir = self._view.getDirNfs()
-        self._settingsSerializer.save(self._settings)
+        self._nfsDir = self._view.getDirNfs()
+        syncDataModel.setNfsDir(self._nfsDir)
         globals.syncManager.restartSync()
         self._view.quit()
 
@@ -139,13 +139,13 @@ class SettingsInteractor:
         self._view = view
 
         self._view.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
-        self._view.btnConfigurar.Bind(wx.EVT_BUTTON, self.OnConfigurar)
+        self._view.btnSelectNfsDir.Bind(wx.EVT_BUTTON, self.OnSelectNfsDir)
         self._view.btnUnlinkAccount.Bind(wx.EVT_BUTTON, self.OnUnlinkAccount)
 
     def OnOk(self, evt):
         self._presenter.updateModel()
 
-    def OnConfigurar(self, evt):
+    def OnSelectNfsDir(self, evt):
         self._presenter.selectDirNfs()
 
     def OnUnlinkAccount(self, evt):

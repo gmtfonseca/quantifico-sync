@@ -1,16 +1,17 @@
 import wx
 import os
+from datetime import datetime
 
 from ui import settings
 from ui.assets import icons
 from quantisync.core.sync import State
-from quantisync.core.settings import SettingsSerializer
+from quantisync.core.model import syncDataModel
+from quantisync.lib.util import DeltaTime
 
 
 def create(parent, cloudFolder, blacklistedFolder):
     return MenuPresenter(MenuFrame(parent),
                          MenuInteractor(),
-                         SettingsSerializer(),
                          cloudFolder,
                          blacklistedFolder)
 
@@ -18,7 +19,7 @@ def create(parent, cloudFolder, blacklistedFolder):
 class MenuFrame(wx.Frame):
 
     def __init__(self, parent, title='QuantiSync'):
-        super(MenuFrame, self).__init__(parent, title=title, size=(300, 130))
+        super(MenuFrame, self).__init__(parent, title=title, size=(300, 150))
         self._parent = parent
         self._createSettingsPopupMenu()
         self._initLayout()
@@ -45,13 +46,13 @@ class MenuFrame(wx.Frame):
         panel = wx.Panel(self, size=(frameWidth, 55))
         panel.SetBackgroundColour("#7159C1")
 
-        txtOrganization = wx.StaticText(panel, -1, 'Fonseca LTDA')
-        txtOrganization.SetForegroundColour('white')
+        self.txtOrg = wx.StaticText(panel, -1, 'Fonseca LTDA')
+        self.txtOrg.SetForegroundColour('white')
         font = wx.Font(wx.FontInfo(10).Bold())
-        txtOrganization.SetFont(font)
+        self.txtOrg.SetFont(font)
 
-        txtEmail = wx.StaticText(panel, -1, 'gustavofonseca94@gmail.com')
-        txtEmail.SetForegroundColour('white')
+        self.txtEmail = wx.StaticText(panel, -1, 'gustavofonseca94@gmail.com')
+        self.txtEmail.SetForegroundColour('white')
 
         bmpFolder = wx.Bitmap(str(icons.FOLDER), wx.BITMAP_TYPE_PNG)
         self.btnFolder = wx.BitmapButton(panel, id=wx.ID_ANY, bitmap=bmpFolder, style=wx.NO_BORDER,
@@ -66,8 +67,8 @@ class MenuFrame(wx.Frame):
         self.btnSettings.SetToolTip('Configurações')
 
         userSizer = wx.BoxSizer(wx.VERTICAL)
-        userSizer.Add(txtOrganization)
-        userSizer.Add(txtEmail)
+        userSizer.Add(self.txtOrg)
+        userSizer.Add(self.txtEmail)
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.btnFolder, wx.SizerFlags(0).Border(wx.RIGHT, 10)),
@@ -120,7 +121,7 @@ class MenuFrame(wx.Frame):
 
     def _initLayoutBottomPanel(self):
         frameWidth = self.GetSize()[0]
-        panel = wx.Panel(self, size=(frameWidth, 27))
+        panel = wx.Panel(self, size=(frameWidth, 30))
         panel.SetBackgroundColour("#e6eaed")
 
         self.txtStatus = wx.StaticText(panel, -1, '', style=wx.ALIGN_RIGHT | wx.ST_NO_AUTORESIZE)
@@ -141,6 +142,10 @@ class MenuFrame(wx.Frame):
 
     def showSettingsPopupMenu(self):
         self.btnSettings.PopupMenu(self.settingsPopupMenu)
+
+    def setUser(self, userEmail, userOrg):
+        self.txtEmail.SetLabel(userEmail)
+        self.txtOrg.SetLabel(userOrg)
 
     def setStatus(self, status):
         self.txtStatus.SetLabel(status)
@@ -191,24 +196,34 @@ class MenuFrame(wx.Frame):
 
 class MenuPresenter:
 
-    def __init__(self, view, interactor, settingsSerializer, cloudFolder, blacklistedFolder):
+    def __init__(self, view, interactor, cloudFolder, blacklistedFolder):
         self._view = view
         interactor.Install(self, self._view)
+        self._state = State.NORMAL
         self._cloudFolder = cloudFolder
         self._blacklistedFolder = blacklistedFolder
-        self._settingsSerializer = settingsSerializer
+
         self.initView()
 
     def initView(self):
-        self._status = 'Atualizado'
+        self._syncData = syncDataModel.getSyncData()
         self._offline = False
+        self._refreshStatus()
         self._refreshCounters()
         self._loadViewFromModel()
 
     def show(self):
         self._view.start()
 
+    def updateModel(self, state):
+        self._state = state
+        self._syncData = syncDataModel.getSyncData()
+        self._refreshStatus()
+        self._refreshCounters()
+        self._loadViewFromModel()
+
     def _loadViewFromModel(self):
+        self._view.setUser(self._syncData.userEmail, self._syncData.userOrg)
         self._view.setStatus(self._status)
         self._view.setSuccessfulCounter(self._success)
         self._view.setFailureCounter(self._failure)
@@ -218,30 +233,30 @@ class MenuPresenter:
         else:
             self._view.setOnlineIcons()
 
-    def updateModel(self, state):
-        if (state == State.SYNCING):
-            self._status = 'Sincronizando...'
-            self._offline = False
-        elif (state == State.NORMAL):
-            self._status = 'Atualizado'
-            self._offline = False
-        elif (state == State.NO_CONNECTION):
-            self._status = 'Desconectado'
-            self._offline = True
-        elif (state == State.UNAUTHORIZED):
-            self._status = 'Desconectado'
-            self._offline = True
-
-        self._refreshCounters()
-        self._loadViewFromModel()
-
     def _refreshCounters(self):
         self._success = self._cloudFolder.getTotalFiles()
         self._failure = self._blacklistedFolder.getTotalFiles()
 
+    def _refreshStatus(self):
+        if (self._state == State.SYNCING):
+            self._status = 'Sincronizando...'
+            self._offline = False
+        elif (self._state == State.NORMAL):
+            if self._syncData.lastSync:
+                delta = datetime.now() - self._syncData.lastSync
+                self._status = 'Atualizado {}'.format(DeltaTime.format(delta))
+            else:
+                self._status = 'Atualizado'
+            self._offline = False
+        elif (self._state == State.NO_CONNECTION):
+            self._status = 'Desconectado'
+            self._offline = True
+        elif (self._state == State.UNAUTHORIZED):
+            self._status = 'Desconectado'
+            self._offline = True
+
     def openSyncFolder(self):
-        settingsInfo = self._settingsSerializer.load()
-        os.system('start {}'.format(settingsInfo.nfsDir))
+        os.system('start {}'.format(self._syncData.nfsDir))
 
     def showSettingsPopupMenu(self):
         self._view.showSettingsPopupMenu()
@@ -249,9 +264,12 @@ class MenuPresenter:
     def showSettings(self):
         settings.show(self._view)
 
-    def closeIfInactive(self, evt):
-        if self._view and not evt.GetActive():
-            self._view.Hide()
+    def handleActivate(self, evt):
+        if self._view:
+            if not evt.GetActive():
+                self._view.Hide()
+            else:
+                self.updateModel(self._state)
 
     def quit(self):
         self._view.destroy()
@@ -279,7 +297,7 @@ class MenuInteractor:
         self._presenter.showSettings()
 
     def OnActivate(self, evt):
-        self._presenter.closeIfInactive(evt)
+        self._presenter.handleActivate(evt)
 
     def OnExit(self, evt):
         self._presenter.quit()

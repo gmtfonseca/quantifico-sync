@@ -52,20 +52,20 @@ class Auth:
         if not email:
             raise EmptyEmail()
 
-        token = self._requestToken(email, password)
-        self._tokenStorageService.setToken(token)
-        return token
+        session = self._requestSession(email, password)
+        self._tokenStorageService.setToken(session['token'])
+        return session
 
     def signout(self):
         self._tokenStorageService.deleteToken()
 
-    def _requestToken(self, email, senha):
+    def _requestSession(self, email, senha):
         try:
             response = self._httpService.post({
                 'email': email,
                 'senha': senha
             })
-            return response.json()['token']
+            return response.json()
         except HTTPError as error:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
                 raise InvalidUser()

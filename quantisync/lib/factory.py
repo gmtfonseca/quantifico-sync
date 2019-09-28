@@ -9,11 +9,10 @@ class NfsFactory:
     @classmethod
     def getHandler(cls):
         from quantisync.lib.network import HttpService
-        from quantisync.core.model import SettingsModel
         from quantisync.core.nf.nf_handler import NfHandler
 
         httpService = HttpService('sync/nfs')
-        return NfHandler(httpService, SettingsModel)
+        return NfHandler(httpService)
 
 
 class AuthFactory:
@@ -42,16 +41,15 @@ class SyncFactory:
         self._blacklistedFolder = blacklistedFolder
 
     def getDefaultSync(self):
-        from quantisync.core.settings import SettingsSerializer
+        from quantisync.core.model import syncDataModel
         from quantisync.core.sync import Sync, InvalidSettings
 
         DELAY = 2
-        settingsSerializer = SettingsSerializer()
-        settings = settingsSerializer.load()
+        syncData = syncDataModel.getSyncData()
 
-        if not settings.nfsDir:
+        if not syncData.nfsDir:
             raise InvalidSettings()
 
-        nfsObserver = NfsFactory.getObserver(settings.nfsDir, self._cloudFolder, self._blacklistedFolder)
+        nfsObserver = NfsFactory.getObserver(syncData.nfsDir, self._cloudFolder, self._blacklistedFolder)
         nfsHandler = NfsFactory.getHandler()
         return Sync(self._view, nfsObserver, nfsHandler, DELAY)

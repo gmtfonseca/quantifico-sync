@@ -4,6 +4,7 @@ from ui import globals
 from ui.assets import icons, images
 from quantisync.lib.factory import AuthFactory
 from quantisync.core.auth import InvalidUser
+from quantisync.core.model import syncDataModel
 
 
 def show(parent):
@@ -104,7 +105,11 @@ class AuthPresenter:
 
     def signinAndStartSync(self):
         try:
-            self._auth.signin(self._view.getEmail(), self._view.getPassword())
+            session = self._auth.signin(self._view.getEmail(), self._view.getPassword())
+            userEmail = session['usuario']['email']
+            # TODO -Trocar para nome fantasia
+            userOrg = session['organizacao']['razaoSocial']
+            syncDataModel.setUser(userEmail, userOrg)
             globals.syncManager.startSync()
             self._view.quit()
         except InvalidUser:
