@@ -93,6 +93,7 @@ class AuthDialog(wx.Dialog):
 
     def start(self):
         self.CenterOnScreen()
+        self.Raise()
         self.ShowModal()
 
 

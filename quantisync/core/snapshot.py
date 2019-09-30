@@ -20,10 +20,12 @@ class LocalFolder:
         files = Dir(self._path).files(self._extension)
         self._snapshot = set()
         for f in files:
-            if File(f).exists():
+            try:
                 self._snapshot.add(Properties(File(f).name(),
                                               File(f).modified())
                                    .getState())
+            except FileNotFoundError:
+                pass
 
     def addToBlacklistFromPath(self, path, reason):
         fileProperties = Properties.fromPath(path)
@@ -131,7 +133,7 @@ class BlacklistedFolder(SerializableFolder):
         self._files = self.initialize(dict())
 
     def getReason(self, fileName):
-        return self._files[fileName].reason
+        return self._files[fileName][1]
 
     def addFile(self, fileProperties, reason):
         if fileProperties and reason:

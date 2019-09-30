@@ -2,7 +2,7 @@ import wx
 import os
 from datetime import datetime
 
-from ui import settings
+from ui import settings, blacklist
 from ui.assets import icons
 from quantisync.core.sync import State
 from quantisync.core.model import syncDataModel
@@ -59,12 +59,14 @@ class MenuFrame(wx.Frame):
                                          size=(bmpFolder.GetWidth(), bmpFolder.GetHeight()))
         self.btnFolder.SetBackgroundColour('#7159C1')
         self.btnFolder.SetToolTip('Abrir pasta com Notas Fiscais')
+        self.btnFolder.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         bmpSettings = wx.Bitmap(str(icons.SETTINGS), wx.BITMAP_TYPE_PNG)
         self.btnSettings = wx.BitmapButton(panel, id=wx.ID_ANY, bitmap=bmpSettings, style=wx.NO_BORDER,
                                            size=(bmpSettings.GetWidth(), bmpSettings.GetHeight()))
         self.btnSettings.SetBackgroundColour('#7159C1')
         self.btnSettings.SetToolTip('Configurações')
+        self.btnSettings.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         userSizer = wx.BoxSizer(wx.VERTICAL)
         userSizer.Add(self.txtOrg)
@@ -97,21 +99,24 @@ class MenuFrame(wx.Frame):
         bpmFailure = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
         self.stcBpmFailure = wx.StaticBitmap(panel, -1, bpmFailure, (10, 5),
                                              (bpmFailure.GetWidth(), bpmFailure.GetHeight()))
+        self.stcBpmFailure.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+
         self.txtFailure = wx.StaticText(panel, -1, '')
         self.txtFailure.SetFont(fontStatus)
+        self.txtFailure.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         self.setFailureCounterTooltip('Notas Fiscais com falha de sincronização')
 
         successSizer = wx.BoxSizer(wx.HORIZONTAL)
         successSizer.Add(self.stcBpmSuccess)
-        successSizer.Add(self.txtSuccess, wx.SizerFlags(1).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
+        successSizer.Add(self.txtSuccess, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
 
         failureSizer = wx.BoxSizer(wx.HORIZONTAL)
         failureSizer.Add(self.stcBpmFailure)
-        failureSizer.Add(self.txtFailure, wx.SizerFlags(1).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
+        failureSizer.Add(self.txtFailure, wx.SizerFlags(0).Expand().Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
 
         statusSizer = wx.BoxSizer(wx.HORIZONTAL)
-        statusSizer.Add(successSizer, wx.SizerFlags(0).Border(wx.RIGHT, 20))
-        statusSizer.Add(failureSizer, wx.SizerFlags(0).Border(wx.LEFT, 20))
+        statusSizer.Add(successSizer, wx.SizerFlags(0).Expand().Border(wx.RIGHT, 20))
+        statusSizer.Add(failureSizer, wx.SizerFlags(0).Expand().Border(wx.LEFT, 20))
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
         panelSizer.Add(statusSizer, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL | wx.RIGHT))
@@ -152,6 +157,7 @@ class MenuFrame(wx.Frame):
 
     def setSuccessfulCounter(self, count):
         self.txtSuccess.SetLabel(str(count))
+        self.Layout()
 
     def setSuccessfulCounterTooltip(self, tooltip):
         self.txtSuccess.SetToolTip(tooltip)
@@ -159,6 +165,7 @@ class MenuFrame(wx.Frame):
 
     def setFailureCounter(self, count):
         self.txtFailure.SetLabel(str(count))
+        self.Layout()
 
     def setFailureCounterTooltip(self, tooltip):
         self.txtFailure.SetToolTip(tooltip)
@@ -242,16 +249,12 @@ class MenuPresenter:
             self._status = 'Sincronizando...'
             self._offline = False
         elif (self._state == State.NORMAL):
+            self._status = 'Atualizado'
+            self._offline = False
             if self._syncData.lastSync:
                 delta = datetime.now() - self._syncData.lastSync
-                self._status = 'Atualizado {}'.format(DeltaTime.format(delta))
-            else:
-                self._status = 'Atualizado'
-            self._offline = False
-        elif (self._state == State.NO_CONNECTION):
-            self._status = 'Desconectado'
-            self._offline = True
-        elif (self._state == State.UNAUTHORIZED):
+                self._status = self._status + ' ' + DeltaTime.format(delta)
+        elif (self._state == State.NO_CONNECTION or self._state == State.UNAUTHORIZED):
             self._status = 'Desconectado'
             self._offline = True
 
@@ -263,6 +266,9 @@ class MenuPresenter:
 
     def showSettings(self):
         settings.show(self._view)
+
+    def showBlacklist(self):
+        blacklist.show(self._view, self._blacklistedFolder)
 
     def handleActivate(self, evt):
         if self._view:
@@ -282,15 +288,20 @@ class MenuInteractor:
         self._view = view
 
         self._view.Bind(wx.EVT_ACTIVATE, self.OnActivate)
-        self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnFolder)
-        self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnSettingsPopupMenu)
+        self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnClickFolder)
+        self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnClickSettingsPopupMenu)
+        self._view.stcBpmFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
+        self._view.txtFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
         self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
         self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnSettings, self._view.menuItemSettings)
 
-    def OnFolder(self, evt):
+    def OnClickFolder(self, evt):
         self._presenter.openSyncFolder()
 
-    def OnSettingsPopupMenu(self, evt):
+    def OnClickFailureCounter(self, evt):
+        self._presenter.showBlacklist()
+
+    def OnClickSettingsPopupMenu(self, evt):
         self._presenter.showSettingsPopupMenu()
 
     def OnSettings(self, evt):
