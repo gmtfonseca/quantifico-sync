@@ -8,7 +8,6 @@ from quantisync.lib.shell import ShellIcon
 from quantisync.core.file import Properties
 from quantisync.core.nf.nf_parser import NfParser, InvalidNf
 from quantisync.core.nf.nf import Nf
-from quantisync.core.model import syncDataModel
 
 
 class NfHandler():
@@ -16,24 +15,21 @@ class NfHandler():
     Responsável em realizar ações em cima de mudanças de estado entre Cliente e Servidor
     '''
 
-    def __init__(self, httpService):
-        self._httpService = httpService
+    def __init__(self, nfInsertionStrategy, nfDeletionStrategy, syncDataModel):
+        self._nfInsertionStrategy = nfInsertionStrategy
+        self._nfDeletionStrategy = nfDeletionStrategy
+        self._syncDataModel = syncDataModel
 
-    def onInsert(self, localFolder, cloudFolder, insertions):
-        nfInsertionStrategy = NfInsertionStrategy(self._httpService,
-                                                  localFolder,
-                                                  cloudFolder)
-        nfInsertionStrategy.insert(insertions)
+    def onInsert(self, insertions):
+        self._nfInsertionStrategy.insert(insertions)
         self._updateLastSyncDate()
 
-    def onDelete(self, cloudFolder, deletions):
-        nfDeletionStrategy = NfDeletionStrategy(self._httpService,
-                                                cloudFolder)
-        nfDeletionStrategy.delete(deletions)
+    def onDelete(self, deletions):
+        self._nfDeletionStrategy.delete(deletions)
         self._updateLastSyncDate()
 
     def _updateLastSyncDate(self):
-        syncDataModel.setLastSync(datetime.now())
+        self._syncDataModel.setLastSync(datetime.now())
 
 
 class NfInsertionStrategy:

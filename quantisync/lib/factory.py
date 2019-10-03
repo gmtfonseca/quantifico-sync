@@ -12,6 +12,7 @@ class NfsFactory:
         from quantisync.core.nf.nf_handler import NfHandler
 
         httpService = HttpService('sync/nfs')
+
         return NfHandler(httpService)
 
 

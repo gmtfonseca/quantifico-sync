@@ -99,14 +99,11 @@ class Sync(Thread):
 
     def _handleInsertions(self):
         logging.debug('Inserindo')
-        self._handler.onInsert(self._observer.getLocalFolder(),
-                               self._observer.getCloudFolder(),
-                               self._observer.getInsertions())
+        self._handler.onInsert(self._observer.getInsertions())
 
     def _handleDeletions(self):
         logging.debug('Removendo')
-        self._handler.onDelete(self._observer.getCloudFolder(),
-                               self._observer.getDeletions())
+        self._handler.onDelete(self._observer.getDeletions())
 
     def _handleBlacklistedGhostFiles(self):
         '''
@@ -115,7 +112,7 @@ class Sync(Thread):
         razão foram removidos pelo usuário
         '''
         logging.debug('Ghost files')
-        self._observer.getLocalFolder().cleanBlacklistedGhostFiles()
+        self._observer.getLocalFolder().removeBlacklistedGhostFiles()
 
     def _postSyncEvent(self, state, isFatal=False):
         evt = SyncEvent(myEVT_SYNC, -1, state, isFatal)

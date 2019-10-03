@@ -39,7 +39,7 @@ class LocalFolder:
         if self._blacklistedFolder.hasFile(fileName):
             self._blacklistedFolder.removeFile(fileName)
 
-    def cleanBlacklistedGhostFiles(self):
+    def removeBlacklistedGhostFiles(self):
         blacklistedGhostFiles = self.getBlacklistedGhostFiles()
         for f in blacklistedGhostFiles:
             self._blacklistedFolder.removeFile(f)
