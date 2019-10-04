@@ -1,7 +1,6 @@
 import wx
 
 from ui.assets import icons
-from quantisync.core.model import syncDataModel
 from ui.app import app
 
 
@@ -111,7 +110,7 @@ class SettingsPresenter:
         self._view.start()
 
     def _initView(self):
-        syncData = syncDataModel.getSyncData()
+        syncData = self._syncDataModel.getSyncData()
         self._nfsDir = syncData.nfsDir
         self._loadViewFromModel()
 

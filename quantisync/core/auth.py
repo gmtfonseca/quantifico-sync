@@ -44,9 +44,10 @@ class AuthService:
     Classe responsável pela autenticação do usuário
     """
 
-    def __init__(self, httpService, tokenStorageService):
+    def __init__(self, httpService, tokenStorageService, syncDataModel):
         self._httpService = httpService
         self._tokenStorageService = tokenStorageService
+        self._syncDataModel = syncDataModel
 
     def signin(self, email, password):
         if not email:
@@ -54,10 +55,15 @@ class AuthService:
 
         session = self._requestSession(email, password)
         self._tokenStorageService.setToken(session['token'])
+        userEmail = session['usuario']['email']
+        # TODO -Trocar para nome fantasia
+        userOrg = session['organizacao']['razaoSocial']
+        self._syncDataModel.setUser(userEmail, userOrg)
         return session
 
     def signout(self):
         self._tokenStorageService.deleteToken()
+        self._syncDataModel.setUser('', '')
 
     def _requestSession(self, email, senha):
         try:
@@ -75,5 +81,5 @@ class AuthService:
     def getToken(self):
         return self._tokenStorageService.getToken()
 
-    def hasToken(self):
+    def isAuthenticated(self):
         return self._tokenStorageService.hasToken()

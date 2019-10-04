@@ -35,13 +35,13 @@ class MainPresenter:
     def __init__(self, view, interactor):
         self._view = view
         interactor.Install(self, self._view)
+        self.createSyncAndStart()
         self._menu = menu.create(self._view)
         self._taskBarIcon = taskbar.create(self._view, self._menu)
-        self.createSyncAndStart()
 
     def createSyncAndStart(self):
         try:
-            app.initSync(self._view)
+            app.createSync(self._view)
             app.sync().start()
         except InvalidSettings:
             self._view.showInvalidNfDirDialog()
@@ -60,14 +60,14 @@ class MainPresenter:
         self._taskBarIcon.updateView(syncState)
 
     def updateMenu(self, syncState):
-        self._menu.updateModel(syncState)
+        self._menu.updateModel()
 
     def removeTaskBarIcon(self):
         self._taskBarIcon.quit()
 
     def destroy(self):
         app.sync().abort()
-        self._presenter.removeTaskBarIcon()
+        self.removeTaskBarIcon()
 
 
 class MainInteractor:
