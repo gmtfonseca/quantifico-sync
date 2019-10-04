@@ -125,7 +125,7 @@ class SettingsPresenter:
     def updateModel(self):
         self._nfsDir = self._view.getDirNfs()
         self._syncDataModel.setNfsDir(self._nfsDir)
-        self._syncManager.startSync()
+        self._syncManager.restartSync()
         self._view.quit()
 
     def unlinkAccount(self):

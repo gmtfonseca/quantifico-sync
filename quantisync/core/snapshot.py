@@ -5,7 +5,7 @@ from quantisync.core.file import Properties
 from quantisync.lib.util import File, Dir
 
 
-class LocalFolder:
+class LocalFolder(object):
     '''
     Representa uma pasta local com arquivos
     '''
@@ -46,7 +46,7 @@ class LocalFolder:
 
     def getBlacklistedGhostFiles(self):
         blacklistedGhostFiles = []
-        for f in self._blacklistedFolder.getFiles():
+        for f in self._blacklistedFolder.files:
             filePath = Path(self._path) / f
             invalidFile = File(filePath)
             if not invalidFile.exists():
@@ -54,26 +54,30 @@ class LocalFolder:
         return blacklistedGhostFiles
 
     def hasBlacklistedGhostFiles(self):
-        for f in self._blacklistedFolder.getFiles():
+        for f in self._blacklistedFolder.files:
             filePath = Path(self._path) / f
             invalidFile = File(filePath)
             if not invalidFile.exists():
                 return True
 
-    def getBlacklistedFolder(self):
+    @property
+    def blacklistedFolder(self):
         return self._blacklistedFolder
 
-    def getSnapshot(self):
-        return self._snapshot - self._blacklistedFolder.getSnapshot()
+    @property
+    def snapshot(self):
+        return self._snapshot - self._blacklistedFolder.snapshot
 
-    def getPath(self):
+    @property
+    def path(self):
         return self._path
 
-    def getExtension(self):
+    @property
+    def extension(self):
         return self._extension
 
 
-class SerializableFolder:
+class SerializableFolder(object):
     '''
     Representa um folder que pode ser gravado em disco
     '''
@@ -98,7 +102,8 @@ class SerializableFolder:
             with open(self._path, 'rb') as f:
                 return pickle.load(f)
 
-    def getPath(self):
+    @property
+    def path(self):
         return self._path
 
 
@@ -115,7 +120,8 @@ class CloudFolder(SerializableFolder):
         self._snapshot = set(snapshot)
         self.saveToDisk(self._snapshot)
 
-    def getSnapshot(self):
+    @property
+    def snapshot(self):
         return self._snapshot
 
     def getTotalFiles(self):
@@ -155,16 +161,18 @@ class BlacklistedFolder(SerializableFolder):
     def hasFile(self, fileName):
         return self._files and fileName in self._files
 
-    def getFiles(self):
+    def getTotalFiles(self):
+        return len(self._files)
+
+    @property
+    def files(self):
         if not self._files:
             return set()
 
         return set(self._files.keys())
 
-    def getTotalFiles(self):
-        return len(self._files)
-
-    def getSnapshot(self):
+    @property
+    def snapshot(self):
         if not self._files:
             return set()
 
@@ -172,7 +180,7 @@ class BlacklistedFolder(SerializableFolder):
         return snapshot
 
 
-class Observer:
+class Observer(object):
     '''
     Responsável em detectar mudanças entre pasta local e pasta na nuvem
     '''
@@ -189,10 +197,10 @@ class Observer:
         self._updateDeletions()
 
     def _updateInsertions(self):
-        self._insertions = self._localFolder.getSnapshot() - self._cloudFolder.getSnapshot()
+        self._insertions = self._localFolder.snapshot - self._cloudFolder.snapshot
 
     def _updateDeletions(self):
-        self._deletions = self._cloudFolder.getSnapshot() - self._localFolder.getSnapshot()
+        self._deletions = self._cloudFolder.snapshot - self._localFolder.snapshot
 
     def hasChanged(self):
         return self.hasInsertions() or self.hasDeletions() or self.hasBlacklistedGhostFiles()
@@ -206,14 +214,18 @@ class Observer:
     def hasBlacklistedGhostFiles(self):
         return self._localFolder.hasBlacklistedGhostFiles()
 
-    def getInsertions(self):
+    @property
+    def insertions(self):
         return self._insertions
 
-    def getDeletions(self):
+    @property
+    def deletions(self):
         return self._deletions
 
-    def getLocalFolder(self):
+    @property
+    def localFolder(self):
         return self._localFolder
 
-    def getCloudFolder(self):
+    @property
+    def cloudFolder(self):
         return self._cloudFolder

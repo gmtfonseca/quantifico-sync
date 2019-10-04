@@ -61,7 +61,7 @@ class BlacklistPresenter:
         self._view.start()
 
     def _populateBlacklist(self):
-        blacklistedFiles = self._blacklistedFolder.getFiles()
+        blacklistedFiles = self._blacklistedFolder.files
 
         for fileName in blacklistedFiles:
             reason = self._blacklistedFolder.getReason(fileName)

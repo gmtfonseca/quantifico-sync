@@ -60,7 +60,7 @@ class NfInsertionStrategy:
 
     def _initNfFromState(self, state):
         fileProperties = Properties.fromState(state)
-        filePath = Path(self._localFolder.getPath()) / fileProperties.name
+        filePath = Path(self._localFolder.path) / fileProperties.name
         fileContent = NfParser.parse(str(filePath))
         nf = Nf(fileProperties, fileContent)
         return nf
@@ -84,7 +84,7 @@ class NfInsertionStrategy:
                 self._localFolder.addToBlacklistFromState(file['state'], file['error'])
 
     def _updateOverlayIcons(self):
-        ShellIcon.updateDir(self._localFolder.getPath())
+        ShellIcon.updateDir(self._localFolder.path)
 
 
 class NfDeletionStrategy:

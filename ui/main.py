@@ -1,8 +1,8 @@
 import wx
 
-from quantisync.core.sync import State
+from quantisync.core.sync import State, InvalidSyncSettings
 from ui.events import EVT_SYNC
-from ui.app import app, InvalidSettings
+from ui.app import app
 from ui import taskbar, menu, auth, settings
 
 
@@ -43,7 +43,7 @@ class MainPresenter:
         try:
             app.createSyncManager(self._view)
             app.syncManager.startSync()
-        except InvalidSettings:
+        except InvalidSyncSettings:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
 

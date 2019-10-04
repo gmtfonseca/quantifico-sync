@@ -21,23 +21,48 @@ class State(Enum):
     UNAUTHORIZED = 3
 
 
-class SyncManager:
+class UninitializedSync(Exception):
+    pass
+
+
+class InvalidSyncSettings(Exception):
+    pass
+
+
+class SyncManager(object):
     '''
     Encapsula uma Thread de Sync, sendo responsável por criar e abortar a mesma
     '''
 
-    def __init__(self, syncFactory, view):
+    def __init__(self, syncFactory):
         self._syncFactory = syncFactory
-        self._view = view
         self._sync = None
 
     def startSync(self):
-        self._sync = self._syncFactory(self._view)
+        self._sync = self._syncFactory()
         self._sync.start()
+
+    def restartSync(self):
+        self.stopSync()
+        self.startSync()
 
     def stopSync(self):
         if self._sync:
             self._sync.abort()
+
+    @property
+    def localFolder(self):
+        if not self._sync:
+            raise UninitializedSync()
+
+        return self._sync.localFolder
+
+    @property
+    def cloudFolder(self):
+        if not self._sync:
+            raise UninitializedSync()
+
+        return self._sync.cloudFolder
 
 
 class Sync(Thread):
@@ -92,11 +117,11 @@ class Sync(Thread):
 
     def _handleInsertions(self):
         logging.debug('Inserindo')
-        self._handler.onInsert(self._observer.getInsertions())
+        self._handler.onInsert(self._observer.insertions)
 
     def _handleDeletions(self):
         logging.debug('Removendo')
-        self._handler.onDelete(self._observer.getDeletions())
+        self._handler.onDelete(self._observer.deletions)
 
     def _handleBlacklistedGhostFiles(self):
         '''
@@ -105,8 +130,16 @@ class Sync(Thread):
         razão foram removidos pelo usuário
         '''
         logging.debug('Ghost files')
-        self._observer.getLocalFolder().removeBlacklistedGhostFiles()
+        self._observer.localFolder.removeBlacklistedGhostFiles()
 
     def _postSyncEvent(self, state, isFatal=False):
         evt = SyncEvent(myEVT_SYNC, -1, state, isFatal)
         wx.PostEvent(self._view, evt)
+
+    @property
+    def localFolder(self):
+        return self._observer.localFolder
+
+    @property
+    def cloudFolder(self):
+        return self._observer.cloudFolder

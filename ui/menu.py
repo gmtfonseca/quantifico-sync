@@ -13,10 +13,9 @@ from quantisync.lib.util import DeltaTime
 def create(parent):
     return MenuPresenter(MenuFrame(parent),
                          MenuInteractor(),
-                         app.localFolder,
-                         app.cloudFolder,
                          app.syncDataModel,
-                         app.authService)
+                         app.authService,
+                         app.syncManager)
 
 
 class MenuFrame(wx.Frame):
@@ -246,11 +245,10 @@ class MenuFrame(wx.Frame):
 
 class MenuPresenter:
 
-    def __init__(self, view, interactor, localFolder, cloudFolder, syncDataModel, authService):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager):
         self._view = view
         interactor.Install(self, self._view)
-        self._localFolder = localFolder
-        self._cloudFolder = cloudFolder
+        self._syncManager = syncManager
         self._syncDataModel = syncDataModel
         self._authService = authService
         self.initView()
@@ -273,8 +271,8 @@ class MenuPresenter:
         self._loadViewFromModel()
 
     def _refreshCounters(self):
-        self._success = self._cloudFolder.getTotalFiles()
-        self._failure = self._localFolder.getBlacklistedFolder().getTotalFiles()
+        self._success = self._syncManager.cloudFolder.getTotalFiles()
+        self._failure = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
 
     def _refreshStatus(self):
         if (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
@@ -327,7 +325,7 @@ class MenuPresenter:
         settings.show(self._view)
 
     def showBlacklist(self):
-        blacklist.show(self._view, self._localFolder.getBlacklistedFolder())
+        blacklist.show(self._view, self._syncManager.localFolder.blacklistedFolder)
 
     def signin(self):
         auth.show(self._view)
