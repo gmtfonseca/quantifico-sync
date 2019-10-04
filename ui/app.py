@@ -6,7 +6,7 @@ from quantisync.core.auth import KeyringTokenStorage, AuthService
 from quantisync.core.model import SyncDataModel
 from quantisync.core.snapshot import LocalFolder, BlacklistedFolder, CloudFolder, Observer
 from quantisync.core.nf.nf_handler import NfHandler, NfInsertionStrategy, NfDeletionStrategy
-from quantisync.core.sync import Sync
+from quantisync.core.sync import Sync, SyncManager
 
 
 class NotInitializedSync(Exception):
@@ -27,7 +27,7 @@ class App:
                                        tokenStorageService=self.keyringTokenStorage,
                                        syncDataModel=self.syncDataModel)
 
-        self._sync = None
+        self._syncManager = None
         self._localFolder = None
         self._cloudFolder = None
 
@@ -36,7 +36,11 @@ class App:
                            url=self.config['network']['HTTP_URL'],
                            tokenStorageService=self.keyringTokenStorage)
 
-    def createSync(self, view):
+    def createSyncManager(self, view):
+        self._syncManager = SyncManager(self._syncFactory, view)
+
+    def _syncFactory(self, view):
+
         nfsDir = self.syncDataModel.getSyncData().nfsDir
 
         if not nfsDir:
@@ -65,20 +69,23 @@ class App:
                     handler=nfsHandler,
                     delay=self.config['sync']['DELAY'])
 
-        self._sync = sync
+        return sync
 
-    def sync(self):
-        if not self.sync:
+    @property
+    def syncManager(self):
+        if not self._syncManager:
             raise NotInitializedSync()
 
-        return self._sync
+        return self._syncManager
 
+    @property
     def localFolder(self):
         if not self._localFolder:
             raise NotInitializedSync()
 
         return self._localFolder
 
+    @property
     def cloudFolder(self):
         if not self._cloudFolder:
             raise NotInitializedSync()
@@ -107,7 +114,7 @@ config = {
     },
     'sync': {
         'NF_EXTENSION': 'XML',
-        'DELAY': 5,
+        'DELAY': 2,
     }
 }
 

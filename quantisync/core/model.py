@@ -52,7 +52,8 @@ class SyncDataModel:
 
         with self._jsonPath.open() as f:
             syncData = SyncData.fromJsonFile(f)
-            syncData.lastSync = Date.parseString(syncData.lastSync)
+            if syncData.lastSync:
+                syncData.lastSync = Date.parseString(syncData.lastSync)
             return syncData
 
     def save(self):

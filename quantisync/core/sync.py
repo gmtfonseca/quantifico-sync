@@ -21,6 +21,25 @@ class State(Enum):
     UNAUTHORIZED = 3
 
 
+class SyncManager:
+    '''
+    Encapsula uma Thread de Sync, sendo responsável por criar e abortar a mesma
+    '''
+
+    def __init__(self, syncFactory, view):
+        self._syncFactory = syncFactory
+        self._view = view
+        self._sync = None
+
+    def startSync(self):
+        self._sync = self._syncFactory(self._view)
+        self._sync.start()
+
+    def stopSync(self):
+        if self._sync:
+            self._sync.abort()
+
+
 class Sync(Thread):
     '''
     Thread responsável por realizar sincronização de arquivos

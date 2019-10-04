@@ -13,8 +13,8 @@ from quantisync.lib.util import DeltaTime
 def create(parent):
     return MenuPresenter(MenuFrame(parent),
                          MenuInteractor(),
-                         app.localFolder(),
-                         app.cloudFolder(),
+                         app.localFolder,
+                         app.cloudFolder,
                          app.syncDataModel,
                          app.authService)
 

@@ -10,7 +10,8 @@ def show(parent):
     return AuthPresenter(AuthDialog(parent, 'QuantiSync', icon=icon),
                          AuthInteractor(),
                          app.authService,
-                         app.syncDataModel)
+                         app.syncDataModel,
+                         app.syncManager)
 
 
 class AuthDialog(wx.Dialog):
@@ -97,11 +98,12 @@ class AuthDialog(wx.Dialog):
 
 
 class AuthPresenter:
-    def __init__(self, view, interactor, authService, syncDataModel):
+    def __init__(self, view, interactor, authService, syncDataModel, syncManager):
         self._view = view
         interactor.Install(self, self._view)
         self._authService = authService
         self._syncDataModel = syncDataModel
+        self._syncManager = syncManager
         self._view.start()
 
     def signinAndStartSync(self):
@@ -111,7 +113,7 @@ class AuthPresenter:
             # TODO -Trocar para nome fantasia
             userOrg = session['organizacao']['razaoSocial']
             self._syncDataModel.setUser(userEmail, userOrg)
-            app.sync().start()
+            self._syncManager.startSync()
             self._view.quit()
         except InvalidUser:
             self._view.showInvalidUserDialog()

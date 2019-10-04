@@ -8,8 +8,9 @@ def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
     return SettingsPresenter(SettingsDialog(parent, icon),
                              SettingsInteractor(),
-                             app.auth,
-                             app.syncDataModel)
+                             app.authService,
+                             app.syncDataModel,
+                             app.syncManager)
 
 
 class SettingsDialog(wx.Dialog):
@@ -100,12 +101,13 @@ class SettingsDialog(wx.Dialog):
 
 class SettingsPresenter:
 
-    def __init__(self, view, interactor, auth, syncDataModel):
+    def __init__(self, view, interactor, authService, syncDataModel, syncManager):
 
         self._view = view
         interactor.Install(self, self._view)
-        self._auth = auth
+        self._authService = authService
         self._syncDataModel = syncDataModel
+        self._syncManager = syncManager
         self._initView()
         self._view.start()
 
@@ -123,14 +125,13 @@ class SettingsPresenter:
     def updateModel(self):
         self._nfsDir = self._view.getDirNfs()
         self._syncDataModel.setNfsDir(self._nfsDir)
-        # app.createSync()
-        # Reset sync globals
+        self._syncManager.startSync()
         self._view.quit()
 
     def unlinkAccount(self):
         confirm = self._view.showUnlinkAccountDialog()
         if confirm:
-            self._auth.signout()
+            self._authService.signout()
 
 
 class SettingsInteractor:

@@ -41,8 +41,8 @@ class MainPresenter:
 
     def createSyncAndStart(self):
         try:
-            app.createSync(self._view)
-            app.sync().start()
+            app.createSyncManager(self._view)
+            app.syncManager.startSync()
         except InvalidSettings:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
@@ -60,13 +60,13 @@ class MainPresenter:
         self._taskBarIcon.updateView(syncState)
 
     def updateMenu(self, syncState):
-        self._menu.updateModel()
+        self._menu.updateState(syncState)
 
     def removeTaskBarIcon(self):
         self._taskBarIcon.quit()
 
     def destroy(self):
-        app.sync().abort()
+        app.syncManager.stopSync()
         self.removeTaskBarIcon()
 
 
