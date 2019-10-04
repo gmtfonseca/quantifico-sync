@@ -1,17 +1,16 @@
 import wx
 
-from ui import globals
 from ui.assets import icons, images
-from quantisync.lib.factory import AuthFactory
+from ui.app import app
 from quantisync.core.auth import InvalidUser
-from quantisync.core.model import syncDataModel
 
 
 def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
-    return AuthPresenter(AuthFactory.getKeyringAuth(),
-                         AuthDialog(parent, 'QuantiSync', icon=icon),
-                         AuthInteractor())
+    return AuthPresenter(AuthDialog(parent, 'QuantiSync', icon=icon),
+                         AuthInteractor(),
+                         app.authService,
+                         app.syncDataModel)
 
 
 class AuthDialog(wx.Dialog):
@@ -98,20 +97,21 @@ class AuthDialog(wx.Dialog):
 
 
 class AuthPresenter:
-    def __init__(self, auth, view, interactor):
-        self._auth = auth
+    def __init__(self, view, interactor, authService, syncDataModel):
         self._view = view
         interactor.Install(self, self._view)
+        self._authService = authService
+        self._syncDataModel = syncDataModel
         self._view.start()
 
     def signinAndStartSync(self):
         try:
-            session = self._auth.signin(self._view.getEmail(), self._view.getPassword())
+            session = self._authService.signin(self._view.getEmail(), self._view.getPassword())
             userEmail = session['usuario']['email']
             # TODO -Trocar para nome fantasia
             userOrg = session['organizacao']['razaoSocial']
-            syncDataModel.setUser(userEmail, userOrg)
-            globals.syncManager.startSync()
+            self._syncDataModel.setUser(userEmail, userOrg)
+            app.sync().start()
             self._view.quit()
         except InvalidUser:
             self._view.showInvalidUserDialog()

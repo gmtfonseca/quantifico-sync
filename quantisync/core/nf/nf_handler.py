@@ -34,11 +34,12 @@ class NfHandler():
 
 class NfInsertionStrategy:
 
-    def __init__(self, httpService, localFolder, cloudFolder):
+    def __init__(self, httpService, localFolder, cloudFolder, batchSize):
         self._localFolder = localFolder
         self._cloudFolder = cloudFolder
         self._insertedNfsQueue = HttpStreamQueue(httpService,
-                                                 self._streamGenerator)
+                                                 self._streamGenerator,
+                                                 batchSize)
 
     def insert(self, insertions):
         self._updateOverlayIcons()
@@ -88,9 +89,9 @@ class NfInsertionStrategy:
 
 class NfDeletionStrategy:
 
-    def __init__(self, httpService, cloudFolder):
+    def __init__(self, httpService, cloudFolder, batchSize):
         self._cloudFolder = cloudFolder
-        self._deletedNfsQueue = HttpDeleteQueue(httpService)
+        self._deletedNfsQueue = HttpDeleteQueue(httpService, batchSize)
 
     def delete(self, deletions):
         self._enqueueDeletedNfs(deletions)

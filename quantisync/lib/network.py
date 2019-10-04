@@ -2,8 +2,6 @@ from queue import Queue
 
 import requests
 
-from quantisync.config.network import HTTP_CONFIG
-
 
 class HttpHeaders:
     def __init__(self, token):
@@ -101,7 +99,7 @@ class HttpRequestQueue:
 
 
 class HttpStreamQueue(HttpRequestQueue):
-    def __init__(self, httpService, streamGenerator, batchSize=HTTP_CONFIG['MAX_BATCH_SIZE']['STREAM']):
+    def __init__(self, httpService, streamGenerator, batchSize):
         super().__init__(httpService, batchSize)
         self.streamGenerator = streamGenerator
 
@@ -110,7 +108,7 @@ class HttpStreamQueue(HttpRequestQueue):
 
 
 class HttpDeleteQueue(HttpRequestQueue):
-    def __init__(self, httpService, batchSize=HTTP_CONFIG['MAX_BATCH_SIZE']['DELETE']):
+    def __init__(self, httpService, batchSize):
         super().__init__(httpService, batchSize)
 
     def _handleHttpRequest(self, batch):

@@ -51,9 +51,11 @@ class App:
 
         nfInsertionStrategy = NfInsertionStrategy(httpService=self.httpService(endpoint='sync/nfs'),
                                                   localFolder=self._localFolder,
-                                                  cloudFolder=self._cloudFolder)
+                                                  cloudFolder=self._cloudFolder,
+                                                  batchSize=self.config['network']['MAX_BATCH_SIZE']['STREAM'])
         nfDeletionStrategy = NfDeletionStrategy(httpService=self.httpService(endpoint='sync/nfs'),
-                                                cloudFolder=self._cloudFolder)
+                                                cloudFolder=self._cloudFolder,
+                                                batchSize=self.config['network']['MAX_BATCH_SIZE']['DELETE'])
 
         nfsHandler = NfHandler(nfInsertionStrategy=nfInsertionStrategy,
                                nfDeletionStrategy=nfDeletionStrategy,
@@ -97,7 +99,11 @@ config = {
 
     },
     'network': {
-        'HTTP_UR': 'http://localhost:3000/'
+        'HTTP_URL': 'http://localhost:3000/',
+        'MAX_BATCH_SIZE': {
+            'STREAM': 40,
+            'DELETE': 100
+        }
     },
     'sync': {
         'NF_EXTENSION': 'XML',

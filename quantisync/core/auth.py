@@ -39,7 +39,7 @@ class KeyringTokenStorage():
             return None
 
 
-class Auth:
+class AuthService:
     """
     Classe responsável pela autenticação do usuário
     """

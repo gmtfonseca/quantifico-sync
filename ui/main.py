@@ -1,8 +1,6 @@
 import wx
 
-from quantisync.config import storage
 from quantisync.core.sync import State
-from quantisync.core.snapshot import BlacklistedFolder, CloudFolder
 from ui.events import EVT_SYNC
 from ui.app import app, InvalidSettings
 from ui import taskbar, menu, auth, settings
@@ -37,9 +35,7 @@ class MainPresenter:
     def __init__(self, view, interactor):
         self._view = view
         interactor.Install(self, self._view)
-        cloudFolder = CloudFolder(storage.CLOUD_FOLDER_PATH)
-        blacklistedFolder = BlacklistedFolder(storage.BLACKLISTED_FOLDER_PATH)
-        self._menu = menu.create(self._view, cloudFolder, blacklistedFolder)
+        self._menu = menu.create(self._view)
         self._taskBarIcon = taskbar.create(self._view, self._menu)
         self.createSyncAndStart()
 

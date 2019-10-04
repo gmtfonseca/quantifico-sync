@@ -10,8 +10,7 @@ def show(parent):
     return SettingsPresenter(SettingsDialog(parent, icon),
                              SettingsInteractor(),
                              app.auth,
-                             app.syncDataModel,
-                             app.sync)
+                             app.syncDataModel)
 
 
 class SettingsDialog(wx.Dialog):
@@ -125,6 +124,7 @@ class SettingsPresenter:
     def updateModel(self):
         self._nfsDir = self._view.getDirNfs()
         self._syncDataModel.setNfsDir(self._nfsDir)
+        # app.createSync()
         # Reset sync globals
         self._view.quit()
 

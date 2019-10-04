@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-from quantisync.config.storage import SYNC_DATA_PATH
 from quantisync.lib.util import Date
 
 
@@ -27,7 +26,7 @@ class SyncData:
 
 
 class SyncDataModel:
-    def __init__(self, jsonPath=SYNC_DATA_PATH):
+    def __init__(self, jsonPath):
         self._jsonPath = Path(jsonPath)
         self._syncData = self.load()
 
@@ -66,6 +65,3 @@ class SyncDataModel:
     def _serializer(self, o):
         if isinstance(o, datetime):
             return o.__str__()
-
-
-syncDataModel = SyncDataModel()

@@ -39,7 +39,7 @@ class LocalFolder:
         if self._blacklistedFolder.hasFile(fileName):
             self._blacklistedFolder.removeFile(fileName)
 
-    def removeBlacklistedGhostFiles(self):
+    def clearBlacklistedGhostFiles(self):
         blacklistedGhostFiles = self.getBlacklistedGhostFiles()
         for f in blacklistedGhostFiles:
             self._blacklistedFolder.removeFile(f)
@@ -60,11 +60,11 @@ class LocalFolder:
             if not invalidFile.exists():
                 return True
 
-    def getSnapshot(self):
-        return self._snapshot - self.getInvalidSnapshot()
+    def getBlacklistedFolder(self):
+        return self._blacklistedFolder
 
-    def getInvalidSnapshot(self):
-        return self._blacklistedFolder.getSnapshot()
+    def getSnapshot(self):
+        return self._snapshot - self._blacklistedFolder.getSnapshot()
 
     def getPath(self):
         return self._path
@@ -121,6 +121,10 @@ class CloudFolder(SerializableFolder):
     def getTotalFiles(self):
         return len(self._snapshot)
 
+    def removeFiles(self):
+        self._snapshot = set()
+        self.saveToDisk(self._snapshot)
+
 
 class BlacklistedFolder(SerializableFolder):
     '''
@@ -142,6 +146,10 @@ class BlacklistedFolder(SerializableFolder):
 
     def removeFile(self, fileName):
         self._files.pop(fileName)
+        self.saveToDisk(self._files)
+
+    def removeFiles(self):
+        self._files = dict()
         self.saveToDisk(self._files)
 
     def hasFile(self, fileName):
