@@ -1,12 +1,11 @@
 import wx
 
 from quantisync.config import storage
-from quantisync.lib.factory import SyncFactory
-from quantisync.core.sync import InvalidSettings, State
+from quantisync.core.sync import State
 from quantisync.core.snapshot import BlacklistedFolder, CloudFolder
 from ui.events import EVT_SYNC
-from ui import taskbar, menu, auth, settings, globals
-import asyncio
+from ui.app import app, InvalidSettings
+from ui import taskbar, menu, auth, settings
 
 
 def start():
@@ -42,23 +41,15 @@ class MainPresenter:
         blacklistedFolder = BlacklistedFolder(storage.BLACKLISTED_FOLDER_PATH)
         self._menu = menu.create(self._view, cloudFolder, blacklistedFolder)
         self._taskBarIcon = taskbar.create(self._view, self._menu)
-        self.createSyncAndStart(cloudFolder, blacklistedFolder)
+        self.createSyncAndStart()
 
-    def createSyncAndStart(self, cloudFolder, blacklistedFolder):
-        syncFactory = SyncFactory(self._view, cloudFolder, blacklistedFolder)
+    def createSyncAndStart(self):
         try:
-            globals.createSyncManager(syncFactory)
-            self.startSync()
+            app.initSync(self._view)
+            app.sync().start()
         except InvalidSettings:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
-
-    def startSync(self):
-        globals.syncManager.startSync()
-
-    async def startSyncAfter(self, delay=60):
-        await asyncio.sleep(delay)
-        self.startSync()
 
     def updateSyncApp(self, evt):
         syncState = evt.getState()
@@ -69,9 +60,6 @@ class MainPresenter:
         if syncState == State.UNAUTHORIZED:
             auth.show(self._view)
 
-        # if syncState == State.NO_CONNECTION:
-            # asyncio.run(self.startSyncAfter())
-
     def updateTaskBarIcon(self, syncState):
         self._taskBarIcon.updateView(syncState)
 
@@ -80,6 +68,10 @@ class MainPresenter:
 
     def removeTaskBarIcon(self):
         self._taskBarIcon.quit()
+
+    def destroy(self):
+        app.sync().abort()
+        self._presenter.removeTaskBarIcon()
 
 
 class MainInteractor:
@@ -94,5 +86,4 @@ class MainInteractor:
         self._presenter.updateSyncApp(evt)
 
     def OnDestroy(self, evt):
-        globals.syncManager.abortSync()
-        self._presenter.removeTaskBarIcon()
+        self._presenter.destroy()

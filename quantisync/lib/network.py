@@ -3,7 +3,6 @@ from queue import Queue
 import requests
 
 from quantisync.config.network import HTTP_CONFIG
-from quantisync.lib.factory import AuthFactory
 
 
 class HttpHeaders:
@@ -22,7 +21,7 @@ class HttpHeaders:
 
 class HttpService:
 
-    def __init__(self, endpoint, url=HTTP_CONFIG['URL'], tokenStorageService=AuthFactory.getKeyringTokenStorage()):
+    def __init__(self, endpoint, url, tokenStorageService):
         self.endpoint = endpoint
         self.url = url
         self.tokenStorageService = tokenStorageService

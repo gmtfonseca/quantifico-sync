@@ -6,8 +6,9 @@ from ui.assets import icons, messages
 
 
 def create(frame, menu):
+    icon = wx.Icon(str(icons.CLOUD))
     return TaskBarPresenter(menu,
-                            TaskBarIconView(frame, wx.Icon(str(icons.CLOUD)), 'QuantiSync\nAtualizado'),
+                            TaskBarIconView(frame, icon, 'QuantiSync\nAtualizado'),
                             TaskBarInteractor())
 
 

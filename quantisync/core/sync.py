@@ -11,10 +11,6 @@ from urllib3.connection import NewConnectionError
 from ui.events import SyncEvent, myEVT_SYNC
 
 
-class InvalidSettings(Exception):
-    pass
-
-
 class State(Enum):
     '''
     Representa o estado de um objeto Sync (Thread)
@@ -23,28 +19,6 @@ class State(Enum):
     SYNCING = 1
     NO_CONNECTION = 2
     UNAUTHORIZED = 3
-
-
-class SyncManager:
-    '''
-    Classe que encapsula o gerenciamento de um Sync
-    '''
-
-    def __init__(self, syncFactory):
-        self._syncFactory = syncFactory
-        self._sync = None
-
-    def startSync(self):
-        self._sync = self._syncFactory.getDefaultSync()
-        self._sync.start()
-
-    def abortSync(self):
-        if self._sync:
-            self._sync.abort()
-
-    def restartSync(self):
-        self.abortSync()
-        self.startSync()
 
 
 class Sync(Thread):

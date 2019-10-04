@@ -2,15 +2,16 @@ import wx
 
 from ui.assets import icons
 from quantisync.core.model import syncDataModel
-from quantisync.lib.factory import AuthFactory
-from ui import globals
+from ui.app import app
 
 
 def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
-    return SettingsPresenter(SettingsDialog(parent, icon=icon),
+    return SettingsPresenter(SettingsDialog(parent, icon),
                              SettingsInteractor(),
-                             AuthFactory.getKeyringAuth())
+                             app.auth,
+                             app.syncDataModel,
+                             app.sync)
 
 
 class SettingsDialog(wx.Dialog):
@@ -101,11 +102,12 @@ class SettingsDialog(wx.Dialog):
 
 class SettingsPresenter:
 
-    def __init__(self, view, interactor, auth):
+    def __init__(self, view, interactor, auth, syncDataModel):
 
         self._view = view
         interactor.Install(self, self._view)
         self._auth = auth
+        self._syncDataModel = syncDataModel
         self._initView()
         self._view.start()
 
@@ -122,8 +124,8 @@ class SettingsPresenter:
 
     def updateModel(self):
         self._nfsDir = self._view.getDirNfs()
-        syncDataModel.setNfsDir(self._nfsDir)
-        globals.syncManager.restartSync()
+        self._syncDataModel.setNfsDir(self._nfsDir)
+        # Reset sync globals
         self._view.quit()
 
     def unlinkAccount(self):
