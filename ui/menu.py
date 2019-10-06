@@ -128,7 +128,7 @@ class MenuFrame(wx.Frame):
         statusSizer.Add(failureSizer, wx.SizerFlags(0).Expand().Border(wx.LEFT, 20))
 
         self.btnSignin = wx.Button(panel, label='Entrar', size=(80, 26), style=wx.BORDER_NONE)
-        self.btnSignin.SetBackgroundColour("#353b48")
+        self.btnSignin.SetBackgroundColour("#7159C1")
         self.btnSignin.SetForegroundColour('white')
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -186,9 +186,6 @@ class MenuFrame(wx.Frame):
         self.stcBpmFailure.SetToolTip(tooltip)
 
     def setUnauthorized(self):
-        self.topPanel.SetBackgroundColour("#353b48")
-        self.btnFolder.SetBackgroundColour('#353b48')
-        self.btnSettings.SetBackgroundColour('#353b48')
         self.txtOrg.Hide()
         self.txtEmail.Hide()
         self.txtFailure.Hide()
@@ -200,9 +197,6 @@ class MenuFrame(wx.Frame):
         self.Layout()
 
     def setAuthorized(self):
-        self.topPanel.SetBackgroundColour("#7159C1")
-        self.btnFolder.SetBackgroundColour('#7159C1')
-        self.btnSettings.SetBackgroundColour('#7159C1')
         self.txtOrg.Show()
         self.txtEmail.Show()
         self.txtFailure.Show()
@@ -275,14 +269,14 @@ class MenuPresenter:
         self._failure = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
 
     def _refreshStatus(self):
-        if (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
+        if (self._state == State.NO_CONNECTION):
+            self.updateNoConnectionStatus()
+        elif (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
             self.updateUnauthorizedStatus()
         elif (self._state == State.SYNCING):
             self.updateSyncingStatus()
         elif (self._state == State.NORMAL):
             self.updateNormalStatus()
-        elif (self._state == State.NO_CONNECTION):
-            self.updateNoConnectionStatus()
 
     def updateSyncingStatus(self):
         self._status = 'Sincronizando...'

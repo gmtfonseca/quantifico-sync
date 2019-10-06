@@ -47,7 +47,7 @@ class MainPresenter:
             self._view.showInvalidNfDirDialog()
             settings.show(self._view)
 
-    def updateSyncApp(self, evt):
+    def update(self, evt):
         syncState = evt.getState()
 
         self.updateTaskBarIcon(syncState)
@@ -79,7 +79,7 @@ class MainInteractor:
         self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
 
     def OnUpdateSyncState(self, evt):
-        self._presenter.updateSyncApp(evt)
+        self._presenter.update(evt)
 
     def OnDestroy(self, evt):
         self._presenter.destroy()
