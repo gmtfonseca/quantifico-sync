@@ -1,4 +1,5 @@
 import wx
+from threading import Thread
 
 from quantisync.core.auth import EmptyUser, InvalidUser
 
@@ -9,18 +10,18 @@ from ui.app import app
 
 def show(parent):
     icon = wx.Icon(str(icons.CLOUD))
-    return WizardPresenter(WizardFrame(parent, icon),
+    return WizardPresenter(WizardDialog(parent, icon),
                            WizardInteractor(),
                            app.authService,
-                           app.syncDataModel,
-                           app.syncManager)
+                           app.syncDataModel)
 
 
-class WizardFrame(wx.Frame):
+class WizardDialog(wx.Dialog):
 
     def __init__(self, parent, icon):
-        super(WizardFrame, self).__init__(parent=parent, size=(
+        super(WizardDialog, self).__init__(parent=parent, size=(
             800, 600), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+        self._parent = parent
         self._initLayout()
         self.SetIcon(icon)
 
@@ -103,6 +104,11 @@ class WizardFrame(wx.Frame):
         self.txtStatus.SetForegroundColour(wx.RED)
         self.txtStatus.Hide()
 
+        aniLoading = wx.adv.Animation(str(images.LOADING))
+        self.ctrlLoading = wx.adv.AnimationCtrl(panel, -1, aniLoading)
+        self.ctrlLoading.SetBackgroundColour(panel.GetBackgroundColour())
+        self.ctrlLoading.Hide()
+
         self.btnSignin = widgets.PrimaryButton(panel, 'Entrar', size=(250, 30))
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -115,6 +121,7 @@ class WizardFrame(wx.Frame):
         mainSizer.Add(bmpBackground, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
         mainSizer.Add(self.txtEmail, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
         mainSizer.Add(self.txtPassword, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
+        mainSizer.Add(self.ctrlLoading, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
         mainSizer.Add(self.txtStatus, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
         mainSizer.Add(btnSizer, wx.SizerFlags(0).Center().Border(wx.ALL, 5))
         mainSizer.AddStretchSpacer()
@@ -143,7 +150,7 @@ class WizardFrame(wx.Frame):
 
         self.nfsDir = wx.GenericDirCtrl(panel, -1, size=(-1, 380), style=wx.DIRCTRL_DIR_ONLY)
 
-        self.btnConfirmNfsDir = widgets.PrimaryButton(panel, 'Confirmar')
+        self.btnConfirmNfsDir = widgets.PrimaryButton(panel,  'Confirmar')
 
         nfsPathSizer = wx.BoxSizer(wx.HORIZONTAL)
         nfsPathSizer.Add(lblNfsDir, wx.SizerFlags(0))
@@ -178,13 +185,22 @@ class WizardFrame(wx.Frame):
 
     def showStatusLabel(self):
         self.txtStatus.Show()
-        self.Layout()
-        self.Refresh()
 
     def hideStatusLabel(self):
         self.txtStatus.Hide()
-        self.Layout()
-        self.Refresh()
+
+    def showLoading(self):
+        self.ctrlLoading.Show()
+        self.ctrlLoading.Play()
+
+    def hideLoading(self):
+        self.ctrlLoading.Hide()
+
+    def hideBtnSignin(self):
+        self.btnSignin.Hide()
+
+    def showBtnSignin(self):
+        self.btnSignin.Show()
 
     def setFirstStepBmp(self, bmp):
         self.bmpFirstStep.SetBitmap(bmp)
@@ -217,22 +233,25 @@ class WizardFrame(wx.Frame):
     def start(self):
         self.CenterOnScreen()
         self.Raise()
-        self.Show()
+        self.ShowModal()
 
     def quit(self):
         self.Destroy()
 
+    def destroy(self):
+        wx.CallAfter(self._parent.Destroy)
+
 
 class WizardPresenter:
 
-    def __init__(self, view, interactor,  authService, syncDataModel, syncManager):
+    def __init__(self, view, interactor,  authService, syncDataModel):
 
         self._view = view
         interactor.Install(self, self._view)
         self._initView()
         self._authService = authService
         self._syncDataModel = syncDataModel
-        self._syncManager = syncManager
+        self._authThread = None
         self._view.start()
 
     def _initView(self):
@@ -248,6 +267,7 @@ class WizardPresenter:
         self._view.setEmail(self._email)
         self._view.setPassword(self._password)
         self._view.setNfsDirPath(self._nfsDirPath)
+        self._view.setStatusLabel(self._statusLabel)
 
     def _loadCurrStep(self):
         if self._currStep == 1:
@@ -285,10 +305,9 @@ class WizardPresenter:
         self._currStep += 1
         self._loadCurrStep()
 
-    def displayStatusLabel(self, label):
+    def setStatusLabel(self, label):
         self._statusLabel = label
-        self._view.setStatusLabel(self._statusLabel)
-        self._view.showStatusLabel()
+        self._loadViewFromModel()
 
     def updateModel(self):
         self._email = self._view.getEmail()
@@ -302,18 +321,41 @@ class WizardPresenter:
         self._view.quit()
 
     def signin(self):
-        self.updateModel()
+        if not self._authThread or not self._authThread.is_alive():
+            self.enableLoading()
+            self._authThread = Thread(target=self._requestSignin)
+            self._authThread.start()
+
+    def enableLoading(self):
         self._view.hideStatusLabel()
+        self._view.hideBtnSignin()
+        self._view.showLoading()
+        self._view.Layout()
+        self._view.Refresh()
+
+    def disableLoading(self):
+        self._view.showStatusLabel()
+        self._view.showBtnSignin()
+        self._view.hideLoading()
+        self._view.Layout()
+        self._view.Refresh()
+
+    def _requestSignin(self):
         try:
-            # Já entendi. A view não tem tempo de dar refresh pois trava no signin
+            self.updateModel()
             self._authService.signin(self._email, self._password)
-            self._nextStep()
+            wx.CallAfter(self._nextStep)
         except EmptyUser:
-            self.displayStatusLabel('Informe o seu usuário e senha.')
+            self.setStatusLabel('Informe o seu usuário e senha.')
         except InvalidUser:
-            self.displayStatusLabel('Usuário ou senha incorreta.')
+            self.setStatusLabel('Usuário ou senha incorreta.')
         except Exception:
-            self.displayStatusLabel('Não foi possível se conectar com o servidor.')
+            self.setStatusLabel('Não foi possível se conectar com o servidor.')
+        finally:
+            wx.CallAfter(self.disableLoading)
+
+    def destroy(self):
+        self._view.destroy()
 
 
 class WizardInteractor:
@@ -325,6 +367,7 @@ class WizardInteractor:
         self._view.btnSignin.Bind(wx.EVT_BUTTON, self.OnSignin)
         self._view.btnConfirmNfsDir.Bind(wx.EVT_BUTTON, self.OnConfirmNfsDir)
         self._view.nfsDir.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.OnNfsDirChange)
+        self._view.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnSignin(self, evt):
         self._presenter.signin()
@@ -334,3 +377,6 @@ class WizardInteractor:
 
     def OnConfirmNfsDir(self, evt):
         self._presenter.confirmNfsDir()
+
+    def OnClose(self, evt):
+        self._presenter.destroy()

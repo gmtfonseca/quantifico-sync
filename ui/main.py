@@ -1,9 +1,9 @@
 import wx
 
-from quantisync.core.sync import State, InvalidSyncSettings
+from quantisync.core.sync import State
 from ui.events import EVT_SYNC
 from ui.app import app
-from ui import taskbar, menu, auth, settings
+from ui import taskbar, menu, auth, wizard
 
 
 def start():
@@ -19,8 +19,8 @@ class MainFrame(wx.Frame):
     def __init__(self):
         super(MainFrame, self).__init__(None)
 
-    def showInvalidNfDirDialog(self):
-        dlg = wx.MessageDialog(self, 'Informe o diretório onde as Notas Fiscais estão localizadas',
+    def showInvalidConfigDialog(self):
+        dlg = wx.MessageDialog(self, 'Ocorreu um erro ao inicializar a aplicação.',
                                'QuantiSync',
                                wx.OK | wx.ICON_INFORMATION
                                )
@@ -35,20 +35,27 @@ class MainPresenter:
     def __init__(self, view, interactor):
         self._view = view
         interactor.Install(self, self._view)
-        self.createSyncAndStart()
-        self._menu = menu.create(self._view)
-        self._taskBarIcon = taskbar.create(self._view, self._menu)
+        self._taskBarIcon = None
+        self._menu = None
+        self._initialize()
 
-        from ui import wizard
-        wizard.show(self._view)
+    def _initialize(self):
+        syncData = app.syncDataModel.getSyncData()
+        appIsReady = syncData.nfsDir and app.authService.isAuthenticated()
+
+        if not appIsReady:
+            wizard.show(self._view)
+
+        try:
+            self.createSyncAndStart()
+            self._menu = menu.create(self._view)
+            self._taskBarIcon = taskbar.create(self._view, self._menu)
+        except Exception:
+            pass
 
     def createSyncAndStart(self):
-        try:
-            app.createSyncManager(self._view)
-            app.syncManager.startSync()
-        except InvalidSyncSettings:
-            self._view.showInvalidNfDirDialog()
-            settings.show(self._view)
+        app.createSyncManager(self._view)
+        app.syncManager.startSync()
 
     def update(self, evt):
         syncState = evt.getState()
@@ -66,10 +73,15 @@ class MainPresenter:
         self._menu.updateState(syncState)
 
     def removeTaskBarIcon(self):
-        self._taskBarIcon.quit()
+        if self._taskBarIcon:
+            self._taskBarIcon.quit()
+
+    def stopSync(self):
+        if app.hasSyncManager():
+            app.syncManager.stopSync()
 
     def destroy(self):
-        app.syncManager.stopSync()
+        self.stopSync()
         self.removeTaskBarIcon()
 
 

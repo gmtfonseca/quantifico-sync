@@ -67,6 +67,9 @@ class App:
 
         return sync
 
+    def hasSyncManager(self):
+        return bool(self._syncManager)
+
     @property
     def syncManager(self):
         if not self._syncManager:
