@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+from http import HTTPStatus
 
 from quantisync.core.file import Properties
 from quantisync.lib.util import File, Dir
@@ -26,6 +27,10 @@ class LocalFolder(object):
                                    .getState())
             except FileNotFoundError:
                 pass
+
+    def clearBlacklistedFolder(self):
+        if self._blacklistedFolder:
+            self._blacklistedFolder.clear()
 
     def addToBlacklistFromPath(self, path, reason):
         fileProperties = Properties.fromPath(path)
@@ -102,6 +107,9 @@ class SerializableFolder(object):
             with open(self._path, 'rb') as f:
                 return pickle.load(f)
 
+    def removeFromDisk(self):
+        File(self._path).unlink()
+
     @property
     def path(self):
         return self._path
@@ -112,24 +120,31 @@ class CloudFolder(SerializableFolder):
     Set que representa o estado atual dos arquivos na nuvem
     '''
 
-    def __init__(self, path):
+    def __init__(self, path, httpService):
         super().__init__(path)
+        self._httpService = httpService
         self._snapshot = self.initialize(set())
 
     def setSnapshot(self, snapshot):
         self._snapshot = set(snapshot)
         self.saveToDisk(self._snapshot)
 
-    @property
-    def snapshot(self):
-        return self._snapshot
+    def sync(self):
+        response = self._httpService.get()
+        print(response.json())
+        if (response.status_code == HTTPStatus.OK):
+            self.setSnapshot(response.json())
+            print(self._snapshot)
 
     def getTotalFiles(self):
         return len(self._snapshot)
 
-    def removeFiles(self):
-        self._snapshot = set()
-        self.saveToDisk(self._snapshot)
+    def clear(self):
+        self.setSnapshot(set())
+
+    @property
+    def snapshot(self):
+        return self._snapshot
 
 
 class BlacklistedFolder(SerializableFolder):
@@ -154,7 +169,7 @@ class BlacklistedFolder(SerializableFolder):
         self._files.pop(fileName)
         self.saveToDisk(self._files)
 
-    def removeFiles(self):
+    def clear(self):
         self._files = dict()
         self.saveToDisk(self._files)
 

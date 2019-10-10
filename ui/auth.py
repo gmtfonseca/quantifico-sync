@@ -108,11 +108,8 @@ class AuthPresenter:
 
     def signinAndStartSync(self):
         try:
-            session = self._authService.signin(self._view.getEmail(), self._view.getPassword())
-            userEmail = session['usuario']['email']
-            # TODO -Trocar para nome fantasia
-            userOrg = session['organizacao']['razaoSocial']
-            self._syncDataModel.setUser(userEmail, userOrg)
+            self._authService.signin(self._view.getEmail(), self._view.getPassword())
+            self._syncManager.cloudFolder.sync()
             self._syncManager.startSync()
             self._view.quit()
         except InvalidUser:

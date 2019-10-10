@@ -39,6 +39,9 @@ class MainPresenter:
         self._menu = menu.create(self._view)
         self._taskBarIcon = taskbar.create(self._view, self._menu)
 
+        from ui import wizard
+        wizard.show(self._view)
+
     def createSyncAndStart(self):
         try:
             app.createSyncManager(self._view)

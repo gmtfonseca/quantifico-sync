@@ -9,7 +9,7 @@ class InvalidUser(Exception):
     pass
 
 
-class EmptyEmail(Exception):
+class EmptyUser(Exception):
     pass
 
 
@@ -25,8 +25,8 @@ class KeyringTokenStorage():
     def deleteToken(self):
         try:
             keyring.delete_password(self._serviceName, 'token')
-        except Exception:
-            raise
+        except keyring.errors.PasswordDeleteError:
+            pass
 
     def hasToken(self):
         return bool(self.getToken())
@@ -50,8 +50,8 @@ class AuthService:
         self._syncDataModel = syncDataModel
 
     def signin(self, email, password):
-        if not email:
-            raise EmptyEmail()
+        if not email or not password:
+            raise EmptyUser()
 
         session = self._requestSession(email, password)
         self._tokenStorageService.setToken(session['token'])
@@ -73,7 +73,8 @@ class AuthService:
             })
             return response.json()
         except HTTPError as error:
-            if error.response.status_code == HTTPStatus.UNAUTHORIZED:
+            if error.response.status_code == HTTPStatus.UNAUTHORIZED or \
+                    error.response.status_code == HTTPStatus.BAD_REQUEST:
                 raise InvalidUser()
             else:
                 raise

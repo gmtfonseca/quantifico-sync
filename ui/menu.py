@@ -324,10 +324,13 @@ class MenuPresenter:
     def signin(self):
         auth.show(self._view)
 
+    def hideView(self):
+        self._view.Hide()
+
     def handleActivate(self, evt):
         if self._view:
             if not evt.GetActive():
-                self._view.Hide()
+                self.hideView()
             else:
                 self.updateModel()
 
@@ -341,6 +344,7 @@ class MenuInteractor:
         self._presenter = presenter
         self._view = view
 
+        self._view.Bind(wx.EVT_CHAR_HOOK, self.OnKeyUp)
         self._view.Bind(wx.EVT_ACTIVATE, self.OnActivate)
         self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnClickFolder)
         self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnClickSettingsPopupMenu)
@@ -370,3 +374,8 @@ class MenuInteractor:
 
     def OnExit(self, evt):
         self._presenter.quit()
+
+    def OnKeyUp(self, event):
+        keyCode = event.GetKeyCode()
+        if keyCode == wx.WXK_ESCAPE:
+            self._presenter.hideView()

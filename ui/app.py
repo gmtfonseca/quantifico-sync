@@ -45,7 +45,8 @@ class App:
         localFolder = LocalFolder(path=nfsDir,
                                   extension=self.config['sync']['NF_EXTENSION'],
                                   blacklistedFolder=blacklistedFolder)
-        cloudFolder = CloudFolder(self.config['storage']['CLOUD_SNAPSHOT_PATH'])
+        cloudFolder = CloudFolder(self.config['storage']['CLOUD_SNAPSHOT_PATH'],
+                                  self.httpService(endpoint='nfs/snapshot'))
         observer = Observer(localFolder=localFolder, cloudFolder=cloudFolder)
 
         nfInsertionStrategy = NfInsertionStrategy(httpService=self.httpService(endpoint='sync/nfs'),
