@@ -131,10 +131,8 @@ class CloudFolder(SerializableFolder):
 
     def sync(self):
         response = self._httpService.get()
-        print(response.json())
         if (response.status_code == HTTPStatus.OK):
             self.setSnapshot(response.json())
-            print(self._snapshot)
 
     def getTotalFiles(self):
         return len(self._snapshot)

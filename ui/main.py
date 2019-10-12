@@ -3,7 +3,7 @@ import wx
 from quantisync.core.sync import State
 from ui.events import EVT_SYNC
 from ui.app import app
-from ui import taskbar, menu, auth, wizard
+from ui import taskbar, menu, wizard
 
 
 def start():
@@ -35,27 +35,20 @@ class MainPresenter:
     def __init__(self, view, interactor):
         self._view = view
         interactor.Install(self, self._view)
-        self._taskBarIcon = None
-        self._menu = None
+        app.createSyncManager(self._view)
+        self._menu = menu.create(self._view)
+        self._taskBarIcon = taskbar.create(self._view, self._menu)
         self._initialize()
 
     def _initialize(self):
         syncData = app.syncDataModel.getSyncData()
         appIsReady = syncData.nfsDir and app.authService.isAuthenticated()
 
-        if not appIsReady:
+        if appIsReady:
+            app.syncManager.startSync()
+        else:
+            self.updateTaskBarIcon(State.UNAUTHORIZED)
             wizard.show(self._view)
-
-        try:
-            self.createSyncAndStart()
-            self._menu = menu.create(self._view)
-            self._taskBarIcon = taskbar.create(self._view, self._menu)
-        except Exception:
-            pass
-
-    def createSyncAndStart(self):
-        app.createSyncManager(self._view)
-        app.syncManager.startSync()
 
     def update(self, evt):
         syncState = evt.getState()
@@ -64,7 +57,7 @@ class MainPresenter:
         self.updateMenu(syncState)
 
         if syncState == State.UNAUTHORIZED:
-            auth.show(self._view)
+            self._initialize()
 
     def updateTaskBarIcon(self, syncState):
         self._taskBarIcon.updateView(syncState)
@@ -76,12 +69,7 @@ class MainPresenter:
         if self._taskBarIcon:
             self._taskBarIcon.quit()
 
-    def stopSync(self):
-        if app.hasSyncManager():
-            app.syncManager.stopSync()
-
     def destroy(self):
-        self.stopSync()
         self.removeTaskBarIcon()
 
 

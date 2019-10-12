@@ -60,6 +60,13 @@ class SyncDataModelTest(unittest.TestCase):
         syncData = syncDataModelCopy.getSyncData()
         self.assertEquals(syncData.lastSync, lastSync)
 
+    def test_remove(self):
+        lastSync = datetime.now()
+        syncDataModel = SyncDataModel(SYNC_DATA_PATH)
+        syncDataModel.setLastSync(lastSync)
+        syncDataModel.remove()
+        self.assertFalse(File(syncDataModel.jsonPath).exists())
+
 
 if __name__ == '__main__':
     unittest.main()

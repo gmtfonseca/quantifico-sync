@@ -131,7 +131,12 @@ class SettingsPresenter:
     def unlinkAccount(self):
         confirm = self._view.showUnlinkAccountDialog()
         if confirm:
+            self._syncManager.stopSync()
             self._authService.signout()
+            self._syncDataModel.remove()
+            self._syncManager.cloudFolder.clear()
+            self._syncManager.localFolder.clearBlacklistedFolder()
+            self._view.quit()
 
 
 class SettingsInteractor:

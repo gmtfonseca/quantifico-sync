@@ -1,5 +1,6 @@
-import wx
 from threading import Thread
+
+import wx
 
 from quantisync.core.auth import EmptyUser, InvalidUser
 
@@ -13,7 +14,9 @@ def show(parent):
     return WizardPresenter(WizardDialog(parent, icon),
                            WizardInteractor(),
                            app.authService,
-                           app.syncDataModel)
+                           app.syncDataModel,
+                           app.syncManager,
+                           app.cloudFolder)
 
 
 class WizardDialog(wx.Dialog):
@@ -230,6 +233,13 @@ class WizardDialog(wx.Dialog):
     def getNfsDirPath(self):
         return self.nfsDir.GetPath()
 
+    def showExistingSnapshotDialog(self):
+        dlg = wx.MessageDialog(self, 'Esta conta já possui notas vinculadas, deseja continuar?',
+                               'Quantifico', style=wx.YES_NO)
+        confirm = dlg.ShowModal() == wx.ID_YES
+        dlg.Destroy()
+        return confirm
+
     def start(self):
         self.CenterOnScreen()
         self.Raise()
@@ -238,19 +248,18 @@ class WizardDialog(wx.Dialog):
     def quit(self):
         self.Destroy()
 
-    def destroy(self):
-        wx.CallAfter(self._parent.Destroy)
-
 
 class WizardPresenter:
 
-    def __init__(self, view, interactor,  authService, syncDataModel):
+    def __init__(self, view, interactor,  authService, syncDataModel, syncManager, cloudFolder):
 
         self._view = view
         interactor.Install(self, self._view)
         self._initView()
         self._authService = authService
         self._syncDataModel = syncDataModel
+        self._syncManager = syncManager
+        self._cloudFolder = cloudFolder
         self._authThread = None
         self._view.start()
 
@@ -318,6 +327,7 @@ class WizardPresenter:
     def confirmNfsDir(self):
         self.updateModel()
         self._syncDataModel.setNfsDir(self._nfsDirPath)
+        self._syncManager.startSync()
         self._view.quit()
 
     def signin(self):
@@ -344,7 +354,7 @@ class WizardPresenter:
         try:
             self.updateModel()
             self._authService.signin(self._email, self._password)
-            wx.CallAfter(self._nextStep)
+            wx.CallAfter(self._checkExistingSnapshot)
         except EmptyUser:
             self.setStatusLabel('Informe o seu usuário e senha.')
         except InvalidUser:
@@ -353,6 +363,20 @@ class WizardPresenter:
             self.setStatusLabel('Não foi possível se conectar com o servidor.')
         finally:
             wx.CallAfter(self.disableLoading)
+
+    def _checkExistingSnapshot(self):
+        self._cloudFolder.sync()
+
+        if self._cloudFolder.getTotalFiles() > 0:
+            confirm = self._view.showExistingSnapshotDialog()
+            if confirm:
+                self._nextStep()
+            else:
+                self._authService.signout()
+                self._cloudFolder.clear()
+                self.destroy()
+        else:
+            self._nextStep()
 
     def destroy(self):
         self._view.destroy()
@@ -367,7 +391,7 @@ class WizardInteractor:
         self._view.btnSignin.Bind(wx.EVT_BUTTON, self.OnSignin)
         self._view.btnConfirmNfsDir.Bind(wx.EVT_BUTTON, self.OnConfirmNfsDir)
         self._view.nfsDir.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.OnNfsDirChange)
-        self._view.Bind(wx.EVT_CLOSE, self.OnClose)
+        # self._view.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnSignin(self, evt):
         self._presenter.signin()
@@ -377,6 +401,3 @@ class WizardInteractor:
 
     def OnConfirmNfsDir(self, evt):
         self._presenter.confirmNfsDir()
-
-    def OnClose(self, evt):
-        self._presenter.destroy()

@@ -63,6 +63,14 @@ class SyncDataModel:
         with self._jsonPath.open('w') as f:
             json.dump(self._syncData.toDict(), f, default=self._serializer)
 
+    def remove(self):
+        if self._jsonPath.exists():
+            self._jsonPath.unlink()
+
+    @property
+    def jsonPath(self):
+        return self._jsonPath
+
     def _serializer(self, o):
         if isinstance(o, datetime):
             return o.__str__()

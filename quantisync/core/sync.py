@@ -44,11 +44,15 @@ class SyncManager(object):
 
     def restartSync(self):
         self.stopSync()
+        self.createSync()
         self.startSync()
 
     def stopSync(self):
         if self._sync:
             self._sync.abort()
+
+    def isRunning(self):
+        return self._sync and self._sync.is_alive()
 
     @property
     def localFolder(self):
@@ -72,6 +76,7 @@ class Sync(Thread):
 
     def __init__(self, view, observer, handler, delay):
         super().__init__()
+        super().setDaemon(True)
         self._view = view
         self._observer = observer
         self._handler = handler

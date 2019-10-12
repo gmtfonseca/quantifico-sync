@@ -2,7 +2,7 @@ import wx
 import os
 from datetime import datetime
 
-from ui import settings, blacklist, auth
+from ui import settings, blacklist, wizard
 from ui.app import app
 from ui.assets import icons
 
@@ -264,9 +264,29 @@ class MenuPresenter:
         self._refreshCounters()
         self._loadViewFromModel()
 
+    def _loadViewFromModel(self):
+        self._view.setUser(self._syncData.userOrg, self._syncData.userEmail)
+        self._view.setStatus(self._status)
+        self._view.setSuccessfulCounter(self._success)
+        self._view.setFailureCounter(self._failure)
+
+        if (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
+            self._view.setUnauthorized()
+        else:
+            self._view.setAuthorized()
+
+        if (self._state == State.NO_CONNECTION):
+            self._view.setOfflineIcons()
+        else:
+            self._view.setOnlineIcons()
+
     def _refreshCounters(self):
-        self._success = self._syncManager.cloudFolder.getTotalFiles()
-        self._failure = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
+        if self._syncManager.isRunning():
+            self._success = self._syncManager.cloudFolder.getTotalFiles()
+            self._failure = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
+        else:
+            self._success = 0
+            self._failure = 0
 
     def _refreshStatus(self):
         if (self._state == State.NO_CONNECTION):
@@ -293,22 +313,6 @@ class MenuPresenter:
     def updateNoConnectionStatus(self):
         self._status = 'Desconectado'
 
-    def _loadViewFromModel(self):
-        self._view.setUser(self._syncData.userOrg, self._syncData.userEmail)
-        self._view.setStatus(self._status)
-        self._view.setSuccessfulCounter(self._success)
-        self._view.setFailureCounter(self._failure)
-
-        if (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
-            self._view.setUnauthorized()
-        else:
-            self._view.setAuthorized()
-
-        if (self._state == State.NO_CONNECTION):
-            self._view.setOfflineIcons()
-        else:
-            self._view.setOnlineIcons()
-
     def openSyncFolder(self):
         os.system('start {}'.format(self._syncData.nfsDir))
 
@@ -322,7 +326,7 @@ class MenuPresenter:
         blacklist.show(self._view, self._syncManager.localFolder.blacklistedFolder)
 
     def signin(self):
-        auth.show(self._view)
+        wizard.show(self._view._parent)
 
     def hideView(self):
         self._view.Hide()
@@ -334,7 +338,7 @@ class MenuPresenter:
             else:
                 self.updateModel()
 
-    def quit(self):
+    def destroy(self):
         self._view.destroy()
 
 
@@ -373,7 +377,7 @@ class MenuInteractor:
         self._presenter.handleActivate(evt)
 
     def OnExit(self, evt):
-        self._presenter.quit()
+        self._presenter.destroy()
 
     def OnKeyUp(self, event):
         keyCode = event.GetKeyCode()

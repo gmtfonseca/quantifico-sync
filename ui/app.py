@@ -17,18 +17,20 @@ class InvalidSettings(Exception):
 class App:
 
     def __init__(self, config):
-        self.config = config
-        self.syncDataModel = SyncDataModel(jsonPath=self.config['storage']['SYNC_DATA_PATH'])
-        self.keyringTokenStorage = KeyringTokenStorage(serviceName=self.config['auth']['SERVICE_NAME'])
-        self.authService = AuthService(self.httpService(endpoint='sessao'),
-                                       tokenStorageService=self.keyringTokenStorage,
-                                       syncDataModel=self.syncDataModel)
+        self._config = config
+        self._syncDataModel = SyncDataModel(jsonPath=self._config['storage']['SYNC_DATA_PATH'])
+        self._keyringTokenStorage = KeyringTokenStorage(serviceName=self._config['auth']['SERVICE_NAME'])
+        self._authService = AuthService(self.httpService(endpoint='sessao'),
+                                        tokenStorageService=self.keyringTokenStorage,
+                                        syncDataModel=self.syncDataModel)
+        self._cloudFolder = CloudFolder(self._config['storage']['CLOUD_SNAPSHOT_PATH'],
+                                        self.httpService(endpoint='nfs/snapshot'))
 
         self._syncManager = None
 
     def httpService(self, endpoint):
         return HttpService(endpoint,
-                           url=self.config['network']['HTTP_URL'],
+                           url=self._config['network']['HTTP_URL'],
                            tokenStorageService=self.keyringTokenStorage)
 
     def createSyncManager(self, view):
@@ -41,21 +43,20 @@ class App:
         if not nfsDir:
             raise InvalidSyncSettings()
 
-        blacklistedFolder = BlacklistedFolder(self.config['storage']['BLACKLISTED_SNAPSHOT_PATH'])
+        blacklistedFolder = BlacklistedFolder(self._config['storage']['BLACKLISTED_SNAPSHOT_PATH'])
         localFolder = LocalFolder(path=nfsDir,
-                                  extension=self.config['sync']['NF_EXTENSION'],
+                                  extension=self._config['sync']['NF_EXTENSION'],
                                   blacklistedFolder=blacklistedFolder)
-        cloudFolder = CloudFolder(self.config['storage']['CLOUD_SNAPSHOT_PATH'],
-                                  self.httpService(endpoint='nfs/snapshot'))
-        observer = Observer(localFolder=localFolder, cloudFolder=cloudFolder)
+
+        observer = Observer(localFolder=localFolder, cloudFolder=self._cloudFolder)
 
         nfInsertionStrategy = NfInsertionStrategy(httpService=self.httpService(endpoint='sync/nfs'),
                                                   localFolder=localFolder,
-                                                  cloudFolder=cloudFolder,
-                                                  batchSize=self.config['network']['MAX_BATCH_SIZE']['STREAM'])
+                                                  cloudFolder=self._cloudFolder,
+                                                  batchSize=self._config['network']['MAX_BATCH_SIZE']['STREAM'])
         nfDeletionStrategy = NfDeletionStrategy(httpService=self.httpService(endpoint='sync/nfs'),
-                                                cloudFolder=cloudFolder,
-                                                batchSize=self.config['network']['MAX_BATCH_SIZE']['DELETE'])
+                                                cloudFolder=self._cloudFolder,
+                                                batchSize=self._config['network']['MAX_BATCH_SIZE']['DELETE'])
 
         nfsHandler = NfHandler(nfInsertionStrategy=nfInsertionStrategy,
                                nfDeletionStrategy=nfDeletionStrategy,
@@ -63,12 +64,25 @@ class App:
         sync = Sync(view=view,
                     observer=observer,
                     handler=nfsHandler,
-                    delay=self.config['sync']['DELAY'])
+                    delay=self._config['sync']['DELAY'])
 
         return sync
 
-    def hasSyncManager(self):
-        return bool(self._syncManager)
+    @property
+    def syncDataModel(self):
+        return self._syncDataModel
+
+    @property
+    def keyringTokenStorage(self):
+        return self._keyringTokenStorage
+
+    @property
+    def authService(self):
+        return self._authService
+
+    @property
+    def cloudFolder(self):
+        return self._cloudFolder
 
     @property
     def syncManager(self):
