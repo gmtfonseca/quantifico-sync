@@ -2,7 +2,6 @@ import wx
 
 from quantisync.core.sync import State
 from ui.events import EVT_SYNC
-from ui.app import app
 from ui import taskbar, menu, wizard, settings
 from ui.menu import MenuHandler
 from ui.taskbar import TaskBarIconHandler
@@ -21,7 +20,7 @@ class MainFrame(wx.Frame):
     def __init__(self):
         super(MainFrame, self).__init__(None)
 
-    def showInvalidConfigDialog(self):
+    def showUnableToStartDialog(self):
         dlg = wx.MessageDialog(self, 'Ocorreu um erro ao inicializar a aplicação.',
                                'QuantiSync',
                                wx.OK | wx.ICON_INFORMATION
@@ -57,14 +56,21 @@ class MainPresenter:
         self._taskBarIcon = taskbar.create(self._view, taskBarIconHandler)
 
     def _initialize(self):
-        syncData = app.syncDataModel.getSyncData()
-        appIsReady = syncData.nfsDir and app.authService.isAuthenticated()
+        syncData = self._app.syncDataModel.getSyncData()
+        appIsReady = syncData.nfsDir and self._app.authService.isAuthenticated()
 
         if appIsReady:
-            app.syncManager.startSync()
+            self._startSync()
         else:
             self._taskBarIcon.updateState(State.UNAUTHORIZED)
             self.showWizard()
+
+    def _startSync(self):
+        try:
+            self._app.syncManager.startSync()
+        except Exception:
+            self._view.showUnableToStartDialog()
+            self.quit()
 
     def updateChildren(self, evt):
         syncState = evt.getState()

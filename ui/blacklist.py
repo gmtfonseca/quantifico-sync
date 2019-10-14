@@ -21,14 +21,8 @@ class BlacklistDialog(wx.Dialog):
         self.SetBackgroundColour("white")
         self.blacklist = wx.ListCtrl(self, -1,
                                      style=wx.LC_REPORT
-                                     # | wx.BORDER_SUNKEN
                                      | wx.BORDER_NONE
                                      | wx.LC_EDIT_LABELS
-                                     # | wx.LC_SORT_ASCENDING    # disabling initial auto sort gives a
-                                     # | wx.LC_NO_HEADER         # better illustration of col-click sorting
-                                     # | wx.LC_VRULES
-                                     # | wx.LC_HRULES
-                                     # | wx.LC_SINGLE_SEL
                                      )
         self.blacklist.InsertColumn(0, "Arquivo")
         self.blacklist.InsertColumn(1, "Razão")
