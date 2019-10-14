@@ -22,13 +22,13 @@ class SettingsFrame(wx.Frame):
     def _initLayout(self):
         self.notebook = wx.Notebook(self)
         self.btnOk = wx.Button(self, wx.ID_OK, label='OK', size=(80, 25))
-        self.btnCancelar = wx.Button(self, wx.ID_CANCEL, label='Cancelar', size=(80, 25))
+        self.btnCancel = wx.Button(self, wx.ID_CANCEL, label='Cancelar', size=(80, 25))
 
         self._initSettingsTab()
         self._initAccountTab()
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(self.btnCancelar, wx.SizerFlags(0).Border(wx.RIGHT | wx.BOTTOM, 5))
+        btnSizer.Add(self.btnCancel, wx.SizerFlags(0).Border(wx.RIGHT | wx.BOTTOM, 5))
         btnSizer.Add(self.btnOk, wx.SizerFlags(0).Border(wx.RIGHT | wx.BOTTOM, 5))
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -93,7 +93,7 @@ class SettingsFrame(wx.Frame):
         self.Raise()
         self.Show()
 
-    def quit(self):
+    def destroy(self):
         self.Destroy()
 
 
@@ -152,6 +152,9 @@ class SettingsPresenter:
     def show(self):
         self._view.start()
 
+    def quit(self):
+        self._view.destroy()
+
 
 class SettingsInteractor:
 
@@ -159,9 +162,13 @@ class SettingsInteractor:
         self._presenter = presenter
         self._view = view
 
+        self._view.btnCancel.Bind(wx.EVT_BUTTON, self.OnCancel)
         self._view.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
         self._view.btnSelectNfsDir.Bind(wx.EVT_BUTTON, self.OnSelectNfsDir)
         self._view.btnUnlinkAccount.Bind(wx.EVT_BUTTON, self.OnUnlinkAccount)
+
+    def OnCancel(self, evt):
+        self._presenter.quit()
 
     def OnOk(self, evt):
         self._presenter.updateModel()

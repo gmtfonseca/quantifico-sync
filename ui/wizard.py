@@ -374,17 +374,18 @@ class WizardPresenter:
             wx.CallAfter(self.disableLoading)
 
     def _checkExistingSnapshot(self):
-        self._cloudFolder.sync()
+        try:
+            self._cloudFolder.sync()
+            if self._cloudFolder.getTotalFiles() > 0:
+                confirm = self._view.showExistingSnapshotDialog()
+                if not confirm:
+                    self._authService.signout()
+                    self._cloudFolder.clear()
+                    self.quit()
 
-        if self._cloudFolder.getTotalFiles() > 0:
-            confirm = self._view.showExistingSnapshotDialog()
-            if confirm:
-                self._nextStep()
-            else:
-                self._authService.signout()
-                self._cloudFolder.clear()
-                self.destroy()
-        else:
+            self._nextStep()
+        except Exception as err:
+            print(err)
             self._nextStep()
 
     def show(self):
@@ -393,7 +394,7 @@ class WizardPresenter:
     def isActive(self):
         return bool(self._view)
 
-    def destroy(self):
+    def quit(self):
         self._view.destroy()
 
 
