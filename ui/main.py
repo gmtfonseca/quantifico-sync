@@ -3,11 +3,13 @@ import wx
 from quantisync.core.sync import State
 from ui.events import EVT_SYNC
 from ui.app import app
-from ui import taskbar, menu, wizard
+from ui import taskbar, menu, wizard, settings
+from ui.menu import MenuHandler
+from ui.taskbar import TaskBarIconHandler
 
 
-def start():
-    return MainPresenter(MainFrame(), MainInteractor())
+def start(app):
+    return MainPresenter(MainFrame(), MainInteractor(), app)
 
 
 class MainFrame(wx.Frame):
@@ -28,17 +30,31 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
 
     def destroy(self):
-        wx.CallAfter(self.Destroy)
+        self.Destroy()
 
 
 class MainPresenter:
-    def __init__(self, view, interactor):
+    def __init__(self, view, interactor, app):
         self._view = view
         interactor.Install(self, self._view)
-        app.createSyncManager(self._view)
-        self._menu = menu.create(self._view)
-        self._taskBarIcon = taskbar.create(self._view, self._menu)
+        self._app = app
+        self._app.createSyncManager(self._view)
+        self._createMenu()
+        self._createTaskBarIcon()
+        self._activeWindow = None
         self._initialize()
+
+    def _createMenu(self):
+        menuHandler = MenuHandler(self.showWizard, self.showConfig, self.quit)
+        self._menu = menu.create(self._view,
+                                 menuHandler,
+                                 self._app.syncDataModel,
+                                 self._app.authService,
+                                 self._app.syncManager)
+
+    def _createTaskBarIcon(self):
+        taskBarIconHandler = TaskBarIconHandler(self.showMenu, self.showMenu)
+        self._taskBarIcon = taskbar.create(self._view, taskBarIconHandler)
 
     def _initialize(self):
         syncData = app.syncDataModel.getSyncData()
@@ -47,30 +63,55 @@ class MainPresenter:
         if appIsReady:
             app.syncManager.startSync()
         else:
-            self.updateTaskBarIcon(State.UNAUTHORIZED)
-            wizard.show(self._view)
+            self._taskBarIcon.updateState(State.UNAUTHORIZED)
+            self.showWizard()
 
-    def update(self, evt):
+    def updateChildren(self, evt):
         syncState = evt.getState()
 
-        self.updateTaskBarIcon(syncState)
-        self.updateMenu(syncState)
+        self._taskBarIcon.updateState(syncState)
+        self._menu.updateState(syncState)
 
         if syncState == State.UNAUTHORIZED:
             self._initialize()
 
-    def updateTaskBarIcon(self, syncState):
-        self._taskBarIcon.updateView(syncState)
+    def showWizard(self):
+        window = wizard.create(self._view,
+                               self._app.syncDataModel,
+                               self._app.authService,
+                               self._app.syncManager,
+                               self._app.cloudFolder,
+                               self._taskBarIcon)
+        self._setActiveWindowAndShow(window)
 
-    def updateMenu(self, syncState):
-        self._menu.updateState(syncState)
+    def showConfig(self):
+        window = settings.create(self._view,
+                                 self._app.syncDataModel,
+                                 self._app.authService,
+                                 self._app.syncManager,
+                                 self._taskBarIcon)
+        self._setActiveWindowAndShow(window)
 
-    def removeTaskBarIcon(self):
+    def _setActiveWindowAndShow(self, window):
+        self._activeWindow = window
+        self._activeWindow.show()
+
+    def hasActiveWindow(self):
+        return self._activeWindow and self._activeWindow.isActive()
+
+    def showMenu(self):
+        if self.hasActiveWindow():
+            self._activeWindow.show()
+        else:
+            self._menu.show()
+
+    def _removeTaskBarIcon(self):
         if self._taskBarIcon:
             self._taskBarIcon.quit()
 
-    def destroy(self):
-        self.removeTaskBarIcon()
+    def quit(self):
+        self._removeTaskBarIcon()
+        self._view.destroy()
 
 
 class MainInteractor:
@@ -78,11 +119,7 @@ class MainInteractor:
         self._presenter = presenter
         self._view = view
 
-        self._view.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
 
     def OnUpdateSyncState(self, evt):
-        self._presenter.update(evt)
-
-    def OnDestroy(self, evt):
-        self._presenter.destroy()
+        self._presenter.updateChildren(evt)

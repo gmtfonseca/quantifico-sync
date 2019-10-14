@@ -3,27 +3,28 @@ from threading import Thread
 import wx
 
 from quantisync.core.auth import EmptyUser, InvalidUser
+from quantisync.core.sync import State
 
 from ui.assets import icons, images, colors
 from ui.components import widgets
-from ui.app import app
 
 
-def show(parent):
+def create(parent, syncDataModel, authService, syncManager, cloudFolder, taskBarIcon):
     icon = wx.Icon(str(icons.CLOUD))
-    return WizardPresenter(WizardDialog(parent, icon),
+    return WizardPresenter(WizardFrame(parent, icon),
                            WizardInteractor(),
-                           app.authService,
-                           app.syncDataModel,
-                           app.syncManager,
-                           app.cloudFolder)
+                           syncDataModel,
+                           authService,
+                           syncManager,
+                           cloudFolder,
+                           taskBarIcon)
 
 
-class WizardDialog(wx.Dialog):
+class WizardFrame(wx.Frame):
 
     def __init__(self, parent, icon):
-        super(WizardDialog, self).__init__(parent=parent, size=(
-            800, 600), style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+        super(WizardFrame, self).__init__(parent=parent, size=(
+            800, 600), style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.FRAME_NO_TASKBAR)
         self._parent = parent
         self._initLayout()
         self.SetIcon(icon)
@@ -241,9 +242,8 @@ class WizardDialog(wx.Dialog):
         return confirm
 
     def start(self):
-        self.CenterOnScreen()
         self.Raise()
-        self.ShowModal()
+        self.Show()
 
     def quit(self):
         self.Destroy()
@@ -251,17 +251,18 @@ class WizardDialog(wx.Dialog):
 
 class WizardPresenter:
 
-    def __init__(self, view, interactor,  authService, syncDataModel, syncManager, cloudFolder):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager, cloudFolder, taskBarIcon):
 
         self._view = view
+        self._view.CenterOnScreen()
         interactor.Install(self, self._view)
         self._initView()
-        self._authService = authService
         self._syncDataModel = syncDataModel
+        self._authService = authService
         self._syncManager = syncManager
         self._cloudFolder = cloudFolder
+        self._taskBarIcon = taskBarIcon
         self._authThread = None
-        self._view.start()
 
     def _initView(self):
         self._currStep = 1
@@ -327,8 +328,16 @@ class WizardPresenter:
     def confirmNfsDir(self):
         self.updateModel()
         self._syncDataModel.setNfsDir(self._nfsDirPath)
-        self._syncManager.startSync()
+        self._startSync()
         self._view.quit()
+
+    def _startSync(self):
+        try:
+            self._syncManager.startSync()
+            self._taskBarIcon.updateState(State.NORMAL)
+        except Exception as err:
+            print(err)
+            pass
 
     def signin(self):
         if not self._authThread or not self._authThread.is_alive():
@@ -378,6 +387,12 @@ class WizardPresenter:
         else:
             self._nextStep()
 
+    def show(self):
+        self._view.start()
+
+    def isActive(self):
+        return bool(self._view)
+
     def destroy(self):
         self._view.destroy()
 
@@ -391,7 +406,6 @@ class WizardInteractor:
         self._view.btnSignin.Bind(wx.EVT_BUTTON, self.OnSignin)
         self._view.btnConfirmNfsDir.Bind(wx.EVT_BUTTON, self.OnConfirmNfsDir)
         self._view.nfsDir.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.OnNfsDirChange)
-        # self._view.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnSignin(self, evt):
         self._presenter.signin()

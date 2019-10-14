@@ -44,7 +44,6 @@ class SyncManager(object):
 
     def restartSync(self):
         self.stopSync()
-        self.createSync()
         self.startSync()
 
     def stopSync(self):

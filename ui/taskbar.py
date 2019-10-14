@@ -5,11 +5,17 @@ from quantisync.core.sync import State
 from ui.assets import icons, messages
 
 
-def create(frame, menu):
+def create(frame, taskBarIconHandler):
     icon = wx.Icon(str(icons.CLOUD))
-    return TaskBarPresenter(menu,
-                            TaskBarIconView(frame, icon, 'QuantiSync\nAtualizado'),
-                            TaskBarInteractor())
+    return TaskBarPresenter(TaskBarIconView(frame, icon, 'QuantiSync\nAtualizado'),
+                            TaskBarInteractor(),
+                            taskBarIconHandler)
+
+
+class TaskBarIconHandler:
+    def __init__(self, onSingleLeftClick, onSingleRightClick):
+        self.onSingleLeftClick = onSingleLeftClick
+        self.onSingleRightClick = onSingleRightClick
 
 
 class TaskBarIconView(TaskBarIcon):
@@ -25,15 +31,18 @@ class TaskBarIconView(TaskBarIcon):
 
 
 class TaskBarPresenter:
-    def __init__(self, menu, view, interactor):
-        self._menu = menu
+    def __init__(self, view, interactor, taskBarIconHandler):
         self._view = view
         interactor.Install(self, self._view)
+        self._taskBarIconHandler = taskBarIconHandler
 
-    def showMenu(self):
-        self._menu.show()
+    def handleSingleLeftClick(self):
+        self._taskBarIconHandler.onSingleLeftClick()
 
-    def updateView(self, state):
+    def handleSingleRightClick(self):
+        self._taskBarIconHandler.onSingleRightClick()
+
+    def updateState(self, state):
         if (state == State.SYNCING):
             icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
             self._view.setIcon(icon, 'QuantiSync\nSincronizando...')
@@ -57,11 +66,11 @@ class TaskBarInteractor:
         self._presenter = presenter
         self._view = view
 
-        self._view.Bind(wx.adv.EVT_TASKBAR_RIGHT_UP, self.OnRightClickTaskBarIcon)
         self._view.Bind(wx.adv.EVT_TASKBAR_LEFT_UP, self.OnLeftClickTaskBarIcon)
-
-    def OnRightClickTaskBarIcon(self, evt):
-        self._presenter.showMenu()
+        self._view.Bind(wx.adv.EVT_TASKBAR_RIGHT_UP, self.OnRightClickTaskBarIcon)
 
     def OnLeftClickTaskBarIcon(self, evt):
-        self._presenter.showMenu()
+        self._presenter.handleSingleLeftClick()
+
+    def OnRightClickTaskBarIcon(self, evt):
+        self._presenter.handleSingleRightClick()

@@ -1,24 +1,23 @@
 import wx
 
-from ui.assets import icons
-from ui.app import app
+from quantisync.core.sync import State
 
 
-def show(parent):
-    icon = wx.Icon(str(icons.CLOUD))
-    return SettingsPresenter(SettingsDialog(parent, icon),
+def create(parent, syncDataModel, authService, syncManager, taskBarIcon):
+    return SettingsPresenter(SettingsFrame(parent),
                              SettingsInteractor(),
-                             app.authService,
-                             app.syncDataModel,
-                             app.syncManager)
+                             syncDataModel,
+                             authService,
+                             syncManager,
+                             taskBarIcon)
 
 
-class SettingsDialog(wx.Dialog):
+class SettingsFrame(wx.Frame):
 
-    def __init__(self, parent, icon, title='QuantiSync'):
-        super(SettingsDialog, self).__init__(parent, title=title)
+    def __init__(self, parent,  title='QuantiSync'):
+        super(SettingsFrame, self).__init__(parent, title=title,
+                                            style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.FRAME_NO_TASKBAR)
         self._initLayout()
-        self.SetIcon(icon)
 
     def _initLayout(self):
         self.notebook = wx.Notebook(self)
@@ -91,9 +90,8 @@ class SettingsDialog(wx.Dialog):
         self.txtDirNfs.SetValue(dirNfs)
 
     def start(self):
-        self.CenterOnScreen()
         self.Raise()
-        self.ShowModal()
+        self.Show()
 
     def quit(self):
         self.Destroy()
@@ -101,15 +99,16 @@ class SettingsDialog(wx.Dialog):
 
 class SettingsPresenter:
 
-    def __init__(self, view, interactor, authService, syncDataModel, syncManager):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager, taskBarIcon):
 
         self._view = view
+        self._view.CenterOnScreen()
         interactor.Install(self, self._view)
-        self._authService = authService
         self._syncDataModel = syncDataModel
+        self._authService = authService
         self._syncManager = syncManager
+        self._taskBarIcon = taskBarIcon
         self._initView()
-        self._view.start()
 
     def _initView(self):
         syncData = self._syncDataModel.getSyncData()
@@ -125,8 +124,16 @@ class SettingsPresenter:
     def updateModel(self):
         self._nfsDir = self._view.getDirNfs()
         self._syncDataModel.setNfsDir(self._nfsDir)
-        self._syncManager.restartSync()
+        self._restartSync()
         self._view.quit()
+
+    def _restartSync(self):
+        try:
+            self._syncManager.restartSync()
+            self._taskBarIcon.updateState(State.NORMAL)
+        except Exception as err:
+            print(err)
+            pass
 
     def unlinkAccount(self):
         confirm = self._view.showUnlinkAccountDialog()
@@ -136,7 +143,14 @@ class SettingsPresenter:
             self._syncDataModel.remove()
             self._syncManager.cloudFolder.clear()
             self._syncManager.localFolder.clearBlacklistedFolder()
+            self._taskBarIcon.updateState(State.UNAUTHORIZED)
             self._view.quit()
+
+    def isActive(self):
+        return bool(self._view)
+
+    def show(self):
+        self._view.start()
 
 
 class SettingsInteractor:

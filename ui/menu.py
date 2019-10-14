@@ -2,20 +2,27 @@ import wx
 import os
 from datetime import datetime
 
-from ui import settings, blacklist, wizard
-from ui.app import app
+from ui import blacklist
 from ui.assets import icons
 
 from quantisync.core.sync import State
 from quantisync.lib.util import DeltaTime
 
 
-def create(parent):
+def create(parent, menuHandler, syncDataModel, authService, syncManager):
     return MenuPresenter(MenuFrame(parent),
                          MenuInteractor(),
-                         app.syncDataModel,
-                         app.authService,
-                         app.syncManager)
+                         menuHandler,
+                         syncDataModel,
+                         authService,
+                         syncManager)
+
+
+class MenuHandler:
+    def __init__(self, onSignin, onConfig, onExit):
+        self.onSignin = onSignin
+        self.onConfig = onConfig
+        self.onExit = onExit
 
 
 class MenuFrame(wx.Frame):
@@ -239,9 +246,10 @@ class MenuFrame(wx.Frame):
 
 class MenuPresenter:
 
-    def __init__(self, view, interactor, syncDataModel, authService, syncManager):
+    def __init__(self, view, interactor, menuHandler, syncDataModel, authService, syncManager):
         self._view = view
         interactor.Install(self, self._view)
+        self._menuHandler = menuHandler
         self._syncManager = syncManager
         self._syncDataModel = syncDataModel
         self._authService = authService
@@ -319,14 +327,14 @@ class MenuPresenter:
     def showSettingsPopupMenu(self):
         self._view.showSettingsPopupMenu()
 
-    def showSettings(self):
-        settings.show(self._view)
-
     def showBlacklist(self):
         blacklist.show(self._view, self._syncManager.localFolder.blacklistedFolder)
 
     def signin(self):
-        wizard.show(self._view._parent)
+        self._menuHandler.onSignin()
+
+    def showConfig(self):
+        self._menuHandler.onConfig()
 
     def hideView(self):
         self._view.Hide()
@@ -338,8 +346,8 @@ class MenuPresenter:
             else:
                 self.updateModel()
 
-    def destroy(self):
-        self._view.destroy()
+    def quit(self):
+        self._menuHandler.onExit()
 
 
 class MenuInteractor:
@@ -356,7 +364,7 @@ class MenuInteractor:
         self._view.stcBpmFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
         self._view.txtFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
         self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
-        self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnSettings, self._view.menuItemSettings)
+        self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnConfig, self._view.menuItemSettings)
 
     def OnClickFolder(self, evt):
         self._presenter.openSyncFolder()
@@ -370,14 +378,14 @@ class MenuInteractor:
     def OnClickSignin(self, evt):
         self._presenter.signin()
 
-    def OnSettings(self, evt):
-        self._presenter.showSettings()
+    def OnConfig(self, evt):
+        self._presenter.showConfig()
 
     def OnActivate(self, evt):
         self._presenter.handleActivate(evt)
 
     def OnExit(self, evt):
-        self._presenter.destroy()
+        self._presenter.quit()
 
     def OnKeyUp(self, event):
         keyCode = event.GetKeyCode()
