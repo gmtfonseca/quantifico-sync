@@ -2,7 +2,7 @@ import wx
 
 from quantisync.core.sync import State
 from ui.events import EVT_SYNC
-from ui import taskbar, menu, wizard, settings
+from ui import taskbar, menu, wizard, config
 from ui.menu import MenuHandler
 from ui.taskbar import TaskBarIconHandler
 
@@ -79,7 +79,7 @@ class MainPresenter:
         self._menu.updateState(syncState)
 
         if syncState == State.UNAUTHORIZED:
-            self._initialize()
+            self.showWizard()
 
     def showWizard(self):
         window = wizard.create(self._view,
@@ -91,11 +91,11 @@ class MainPresenter:
         self._setActiveWindowAndShow(window)
 
     def showConfig(self):
-        window = settings.create(self._view,
-                                 self._app.syncDataModel,
-                                 self._app.authService,
-                                 self._app.syncManager,
-                                 self._taskBarIcon)
+        window = config.create(self._view,
+                               self._app.syncDataModel,
+                               self._app.authService,
+                               self._app.syncManager,
+                               self._taskBarIcon)
         self._setActiveWindowAndShow(window)
 
     def _setActiveWindowAndShow(self, window):

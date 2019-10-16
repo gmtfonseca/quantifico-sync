@@ -74,7 +74,7 @@ class MenuFrame(wx.Frame):
         self.btnSettings = wx.BitmapButton(panel, id=wx.ID_ANY, bitmap=bmpSettings, style=wx.NO_BORDER,
                                            size=(bmpSettings.GetWidth(), bmpSettings.GetHeight()))
         self.btnSettings.SetBackgroundColour('#7159C1')
-        self.btnSettings.SetToolTip('Configurações')
+        self.btnSettings.SetToolTip('Preferências')
         self.btnSettings.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         self.txtUnauthorized = wx.StaticText(panel, -1, 'Entre para começar')
@@ -162,7 +162,7 @@ class MenuFrame(wx.Frame):
 
     def _createSettingsPopupMenu(self):
         self.settingsPopupMenu = wx.Menu()
-        self.menuItemSettings = self.settingsPopupMenu.Append(-1, 'Configurações')
+        self.menuItemSettings = self.settingsPopupMenu.Append(-1, 'Preferências...')
         self.settingsPopupMenu.AppendSeparator()
         self.menuItemExit = self.settingsPopupMenu.Append(wx.ID_EXIT, 'Sair')
 

@@ -31,11 +31,12 @@ class WizardFrame(wx.Frame):
 
     def _initLayout(self):
         self.SetBackgroundColour("white")
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.leftPanel = self._initLeftPanel()
         self.firstStepPanel = self._initFirstStepPanel()
         self.secondStepPanel = self._initSecondStepPanel()
+
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         mainSizer.Add(self.leftPanel)
         mainSizer.Add(self.firstStepPanel)
         mainSizer.Add(self.secondStepPanel)
