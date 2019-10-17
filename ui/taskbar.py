@@ -60,7 +60,7 @@ class TaskBarPresenter:
             self._view.setIcon(icon, 'Quantifico\nNão conectado')
         elif self._state == State.UNAUTHORIZED:
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
-            self._view.setIcon(icon, 'Quantifico\nErro ao se conectar com servidor')
+            self._view.setIcon(icon, 'Quantifico\nNão autenticado')
 
     def handleSingleLeftClick(self):
         self._taskBarIconHandler.onSingleLeftClick()

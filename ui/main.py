@@ -62,23 +62,23 @@ class MainPresenter:
         if appIsReady:
             self._startSync()
         else:
-            self._taskBarIcon.updateState(State.UNAUTHORIZED)
+            self.updateChildrenState(State.UNAUTHORIZED)
             self.showWizard()
 
     def _startSync(self):
         try:
             self._app.syncManager.startSync()
-            self._menu.updateState(State.NORMAL)
-            self._taskBarIcon.updateState(State.NORMAL)
+            self.updateChildrenState(State.NORMAL)
         except Exception:
             self._view.showUnableToStartDialog()
             self.quit()
 
-    def updateChildren(self, evt):
-        syncState = evt.getState()
-
+    def updateChildrenState(self, syncState):
         self._taskBarIcon.updateState(syncState)
         self._menu.updateState(syncState)
+
+    def handleSyncStateUpdate(self, syncState):
+        self.updateChildrenState(syncState)
 
         if syncState == State.UNAUTHORIZED:
             self.showWizard()
@@ -89,7 +89,7 @@ class MainPresenter:
                                self._app.authService,
                                self._app.syncManager,
                                self._app.cloudFolder,
-                               self._taskBarIcon)
+                               self.handleSyncStateUpdate)
         self._setActiveWindowAndShow(window)
 
     def showConfig(self):
@@ -97,7 +97,7 @@ class MainPresenter:
                                self._app.syncDataModel,
                                self._app.authService,
                                self._app.syncManager,
-                               self._taskBarIcon)
+                               self.handleSyncStateUpdate)
         self._setActiveWindowAndShow(window)
 
     def _setActiveWindowAndShow(self, window):
@@ -130,4 +130,4 @@ class MainInteractor:
         self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
 
     def OnUpdateSyncState(self, evt):
-        self._presenter.updateChildren(evt)
+        self._presenter.handleSyncStateUpdate(evt.getState())

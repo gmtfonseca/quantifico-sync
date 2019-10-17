@@ -9,7 +9,7 @@ from ui.assets import icons, images, colors
 from ui.components import widgets
 
 
-def create(parent, syncDataModel, authService, syncManager, cloudFolder, taskBarIcon):
+def create(parent, syncDataModel, authService, syncManager, cloudFolder, onAppStateChange):
     icon = wx.Icon(str(icons.CLOUD))
     return WizardPresenter(WizardFrame(parent, icon),
                            WizardInteractor(),
@@ -17,7 +17,7 @@ def create(parent, syncDataModel, authService, syncManager, cloudFolder, taskBar
                            authService,
                            syncManager,
                            cloudFolder,
-                           taskBarIcon)
+                           onAppStateChange)
 
 
 class WizardFrame(wx.Frame):
@@ -252,7 +252,7 @@ class WizardFrame(wx.Frame):
 
 class WizardPresenter:
 
-    def __init__(self, view, interactor, syncDataModel, authService, syncManager, cloudFolder, taskBarIcon):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager, cloudFolder, onAppStateChange):
 
         self._view = view
         self._view.CenterOnScreen()
@@ -262,7 +262,7 @@ class WizardPresenter:
         self._authService = authService
         self._syncManager = syncManager
         self._cloudFolder = cloudFolder
-        self._taskBarIcon = taskBarIcon
+        self._onAppStateChange = onAppStateChange
         self._authThread = None
 
     def _initView(self):
@@ -335,7 +335,7 @@ class WizardPresenter:
     def _startSync(self):
         try:
             self._syncManager.startSync()
-            self._taskBarIcon.updateState(State.NORMAL)
+            self._onAppStateChange(State.NORMAL)
         except Exception as err:
             print(err)
             pass

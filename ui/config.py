@@ -16,14 +16,14 @@ class Tab(Enum):
     ACCOUNT = 1
 
 
-def create(parent, syncDataModel, authService, syncManager, taskBarIcon):
-    icon = wx.Icon(str(icons.CLOUD))
+def create(parent, syncDataModel, authService, syncManager, onAppStateChange):
+    icon = wx.Icon(icons.CLOUD.as_posix())
     return ConfigPresenter(ConfigFrame(parent, icon),
                            ConfigInteractor(),
                            syncDataModel,
                            authService,
                            syncManager,
-                           taskBarIcon)
+                           onAppStateChange)
 
 
 class ConfigFrame(wx.Frame):
@@ -208,7 +208,7 @@ class ConfigFrame(wx.Frame):
 
 class ConfigPresenter:
 
-    def __init__(self, view, interactor, syncDataModel, authService, syncManager, taskBarIcon):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager, onAppStateChange):
 
         self._view = view
         self._view.CenterOnScreen()
@@ -216,7 +216,7 @@ class ConfigPresenter:
         self._syncDataModel = syncDataModel
         self._authService = authService
         self._syncManager = syncManager
-        self._taskBarIcon = taskBarIcon
+        self._onAppStateChange = onAppStateChange
         self._initView()
 
     def _initView(self):
@@ -290,7 +290,7 @@ class ConfigPresenter:
     def _restartSync(self):
         try:
             self._syncManager.restartSync()
-            self._taskBarIcon.updateState(State.NORMAL)
+            self._onAppStateChange(State.NORMAL)
         except Exception as err:
             print(err)
             raise err
@@ -308,7 +308,7 @@ class ConfigPresenter:
             self._syncDataModel.remove()
             self._syncManager.cloudFolder.clear()
             self._syncManager.localFolder.clearBlacklistedFolder()
-            self._taskBarIcon.updateState(State.UNAUTHORIZED)
+            self._onAppStateChange(State.UNAUTHORIZED)
         except Exception as err:
             print(err)
             raise err
