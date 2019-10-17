@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 from functools import partial
 
 from quantisync.lib.network import HttpService
@@ -8,10 +6,6 @@ from quantisync.core.model import SyncDataModel
 from quantisync.core.snapshot import LocalFolder, BlacklistedFolder, CloudFolder, Observer
 from quantisync.core.nf.nf_handler import NfHandler, NfInsertionStrategy, NfDeletionStrategy
 from quantisync.core.sync import Sync, SyncManager, UninitializedSync, InvalidSyncSettings
-
-
-class InvalidSettings(Exception):
-    pass
 
 
 class App:
@@ -90,31 +84,3 @@ class App:
             raise UninitializedSync()
 
         return self._syncManager
-
-
-APPDATA_PATH = Path(os.getenv('LOCALAPPDATA')) / 'Quantifico'
-
-config = {
-    'storage': {
-        'SYNC_DATA_PATH': APPDATA_PATH / 'sync_data.json',
-        'CLOUD_SNAPSHOT_PATH': APPDATA_PATH / 'cloud.dat',
-        'BLACKLISTED_SNAPSHOT_PATH': APPDATA_PATH / 'blacklisted.dat'
-    },
-    'auth': {
-        'SERVICE_NAME': 'quantisync',
-
-    },
-    'network': {
-        'HTTP_URL': 'http://localhost:3000/',
-        'MAX_BATCH_SIZE': {
-            'STREAM': 40,
-            'DELETE': 100
-        }
-    },
-    'sync': {
-        'NF_EXTENSION': 'XML',
-        'DELAY': 2,
-    }
-}
-
-app = App(config)
