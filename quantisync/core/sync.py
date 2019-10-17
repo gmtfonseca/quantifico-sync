@@ -19,6 +19,7 @@ class State(Enum):
     SYNCING = 1
     NO_CONNECTION = 2
     UNAUTHORIZED = 3
+    UNINITIALIZED = 4
 
 
 class UninitializedSync(Exception):

@@ -3,7 +3,8 @@ import os
 from datetime import datetime
 
 from ui import blacklist
-from ui.assets import icons
+from ui.assets import icons, colors
+from ui.components import widgets
 
 from quantisync.core.sync import State
 from quantisync.lib.util import DeltaTime
@@ -27,19 +28,26 @@ class MenuHandler:
 
 class MenuFrame(wx.Frame):
 
-    def __init__(self, parent, title='QuantiSync'):
-        super(MenuFrame, self).__init__(parent, title=title, size=(300, 150))
+    def __init__(self, parent):
+        # 150
+        super(MenuFrame, self).__init__(parent, size=(300, 150))
         self._parent = parent
         self._createSettingsPopupMenu()
         self._initLayout()
 
     def _initLayout(self):
-        self.SetBackgroundColour("white")
+        self.SetBackgroundColour(wx.WHITE)
         self.SetWindowStyle(wx.FRAME_TOOL_WINDOW)
 
-        self.topPanel = self._initLayoutTopPanel()
+        windowWidth, windowHeight = self.GetSize()
+
+        topPanelHeight = windowHeight * 0.35
+        self.topPanel = self._initLayoutTopPanel(windowWidth, topPanelHeight)
+
+        bottomPanelHeight = windowHeight * 0.22
+        self.bottomPanel = self._initLayoutBottomPanel(windowWidth, bottomPanelHeight)
+
         self.contentPanel = self._initContentPanel()
-        self.bottomPanel = self._initLayoutBottomPanel()
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(self.topPanel)
@@ -50,112 +58,113 @@ class MenuFrame(wx.Frame):
 
         self.SetSizer(mainSizer)
 
-    def _initLayoutTopPanel(self):
-        frameWidth = self.GetSize()[0]
-        panel = wx.Panel(self, size=(frameWidth, 55))
-        panel.SetBackgroundColour("#7159C1")
+    def _initLayoutTopPanel(self, width, height):
+        panel = wx.Panel(self, size=(width, height))
+        panel.SetBackgroundColour(colors.PRIMARY)
 
         self.txtOrg = wx.StaticText(panel, -1, '')
-        self.txtOrg.SetForegroundColour('white')
+        self.txtOrg.SetForegroundColour(wx.WHITE)
         font = wx.Font(wx.FontInfo(10).Bold())
         self.txtOrg.SetFont(font)
 
         self.txtEmail = wx.StaticText(panel, -1, '')
-        self.txtEmail.SetForegroundColour('white')
+        self.txtEmail.SetForegroundColour(wx.WHITE)
 
         bmpFolder = wx.Bitmap(str(icons.FOLDER), wx.BITMAP_TYPE_PNG)
         self.btnFolder = wx.BitmapButton(panel, id=wx.ID_ANY, bitmap=bmpFolder, style=wx.NO_BORDER,
                                          size=(bmpFolder.GetWidth(), bmpFolder.GetHeight()))
-        self.btnFolder.SetBackgroundColour('#7159C1')
+        self.btnFolder.SetBackgroundColour(colors.PRIMARY)
         self.btnFolder.SetToolTip('Abrir pasta com Notas Fiscais')
         self.btnFolder.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         bmpSettings = wx.Bitmap(str(icons.SETTINGS), wx.BITMAP_TYPE_PNG)
         self.btnSettings = wx.BitmapButton(panel, id=wx.ID_ANY, bitmap=bmpSettings, style=wx.NO_BORDER,
                                            size=(bmpSettings.GetWidth(), bmpSettings.GetHeight()))
-        self.btnSettings.SetBackgroundColour('#7159C1')
-        self.btnSettings.SetToolTip('Preferências')
+        self.btnSettings.SetBackgroundColour(colors.PRIMARY)
+        self.btnSettings.SetToolTip('Configurações')
         self.btnSettings.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
         self.txtUnauthorized = wx.StaticText(panel, -1, 'Entre para começar')
         font = wx.Font(wx.FontInfo(10).Bold())
         self.txtUnauthorized.SetFont(font)
-        self.txtUnauthorized.SetForegroundColour('white')
+        self.txtUnauthorized.SetForegroundColour(wx.WHITE)
 
-        userSizer = wx.BoxSizer(wx.VERTICAL)
-        userSizer.Add(self.txtOrg)
-        userSizer.Add(self.txtEmail)
+        self.userSizer = wx.BoxSizer(wx.VERTICAL)
+        self.userSizer.Add(self.txtOrg)
+        self.userSizer.Add(self.txtEmail)
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.btnFolder, wx.SizerFlags(0).Border(wx.RIGHT, 10)),
         btnSizer.Add(self.btnSettings)
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
-        panelSizer.Add(self.txtUnauthorized, wx.SizerFlags(1).Align(
-            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, 10))
-        panelSizer.Add(userSizer, wx.SizerFlags(1).Left().Border(wx.ALL, 10))
-        panelSizer.Add(btnSizer, wx.SizerFlags(0).Align(
-            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL).Border(wx.RIGHT, 10))
+        panelSizer.Add(self.txtUnauthorized,
+                       wx.SizerFlags(1).Align(wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, 10))
+        panelSizer.Add(self.userSizer,
+                       wx.SizerFlags(1).Align(wx.LEFT | wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, 10))
+        panelSizer.Add(btnSizer,
+                       wx.SizerFlags(0).Align(wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL).Border(wx.RIGHT, 10))
 
         panel.SetSizer(panelSizer)
         return panel
 
     def _initContentPanel(self):
         panel = wx.Panel(self)
-        panel.SetBackgroundColour("white")
+        panel.SetBackgroundColour(wx.WHITE)
 
         fontStatus = wx.Font(wx.FontInfo(11).FaceName("Calibri Light"))
-        bpmSuccess = wx.Bitmap(str(icons.SUCCESS), wx.BITMAP_TYPE_PNG)
-        self.stcBpmSuccess = wx.StaticBitmap(panel, -1, bpmSuccess, (10, 5),
-                                             (bpmSuccess.GetWidth(), bpmSuccess.GetHeight()))
-        self.txtSuccess = wx.StaticText(panel, -1, '')
-        self.txtSuccess.SetFont(fontStatus)
-        self.setSuccessfulCounterTooltip('Notas Fiscais sincronizadas com sucesso')
+        bmpCloudCounter = wx.Bitmap(str(icons.SUCCESS), wx.BITMAP_TYPE_PNG)
+        self.bmpCloudCounter = wx.StaticBitmap(panel, -1, bmpCloudCounter, (10, 5),
+                                               (bmpCloudCounter.GetWidth(), bmpCloudCounter.GetHeight()))
+        self.txtCloudCounter = wx.StaticText(panel, -1, '')
+        self.txtCloudCounter.SetFont(fontStatus)
+        self.txtCloudCounter.SetToolTip('Notas Fiscais sincronizadas com sucesso')
+        self.bmpCloudCounter.SetToolTip('Notas Fiscais sincronizadas com sucesso')
 
-        bpmFailure = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
-        self.stcBpmFailure = wx.StaticBitmap(panel, -1, bpmFailure, (10, 5),
-                                             (bpmFailure.GetWidth(), bpmFailure.GetHeight()))
-        self.stcBpmFailure.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        bmpBlacklistedCounter = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
+        self.bmpBlacklistedCounter = wx.StaticBitmap(panel, -1, bmpBlacklistedCounter, (10, 5),
+                                                     (bmpBlacklistedCounter.GetWidth(),
+                                                      bmpBlacklistedCounter.GetHeight()))
+        self.bmpBlacklistedCounter.SetCursor(wx.Cursor(wx.CURSOR_HAND))
 
-        self.txtFailure = wx.StaticText(panel, -1, '')
-        self.txtFailure.SetFont(fontStatus)
-        self.txtFailure.SetCursor(wx.Cursor(wx.CURSOR_HAND))
-        self.setFailureCounterTooltip('Notas Fiscais com falha de sincronização')
+        self.txtBlacklistedCounter = wx.StaticText(panel, -1, '')
+        self.txtBlacklistedCounter.SetFont(fontStatus)
+        self.txtBlacklistedCounter.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+        self.txtBlacklistedCounter.SetToolTip('Notas Fiscais com falha de sincronização')
+        self.bmpBlacklistedCounter.SetToolTip('Notas Fiscais com falha de sincronização')
 
-        successSizer = wx.BoxSizer(wx.HORIZONTAL)
-        successSizer.Add(self.stcBpmSuccess)
-        successSizer.Add(self.txtSuccess, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
+        cloudSizer = wx.BoxSizer(wx.HORIZONTAL)
+        cloudSizer.Add(self.bmpCloudCounter)
+        cloudSizer.Add(self.txtCloudCounter, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
 
-        failureSizer = wx.BoxSizer(wx.HORIZONTAL)
-        failureSizer.Add(self.stcBpmFailure)
-        failureSizer.Add(self.txtFailure, wx.SizerFlags(0).Expand().Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
+        blacklistedSizer = wx.BoxSizer(wx.HORIZONTAL)
+        blacklistedSizer.Add(self.bmpBlacklistedCounter)
+        blacklistedSizer.Add(self.txtBlacklistedCounter, wx.SizerFlags(
+            0).Expand().Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.LEFT, 5))
 
-        statusSizer = wx.BoxSizer(wx.HORIZONTAL)
-        statusSizer.Add(successSizer, wx.SizerFlags(0).Expand().Border(wx.RIGHT, 20))
-        statusSizer.Add(failureSizer, wx.SizerFlags(0).Expand().Border(wx.LEFT, 20))
+        self.countersSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.countersSizer.Add(cloudSizer, wx.SizerFlags(0).Expand().Border(wx.RIGHT, 20))
+        self.countersSizer.Add(blacklistedSizer, wx.SizerFlags(0).Expand().Border(wx.LEFT, 20))
 
-        self.btnSignin = wx.Button(panel, label='Entrar', size=(80, 26), style=wx.BORDER_NONE)
-        self.btnSignin.SetBackgroundColour("#7159C1")
-        self.btnSignin.SetForegroundColour('white')
+        self.btnSignin = widgets.PrimaryButton(panel, 'Entrar')
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
-        panelSizer.Add(statusSizer, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL | wx.RIGHT))
+        panelSizer.Add(self.countersSizer, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL | wx.RIGHT))
         panelSizer.Add(self.btnSignin, wx.SizerFlags(0).Align(wx.ALIGN_CENTER_VERTICAL))
 
         panel.SetSizer(panelSizer)
         return panel
 
-    def _initLayoutBottomPanel(self):
-        frameWidth = self.GetSize()[0]
-        panel = wx.Panel(self, size=(frameWidth, 30))
-        panel.SetBackgroundColour("#e6eaed")
+    def _initLayoutBottomPanel(self, width, height):
+        panel = wx.Panel(self, size=(width, height))
+        panel.SetBackgroundColour(colors.GREY_LIGHT)
 
         self.txtStatus = wx.StaticText(panel, -1, '', style=wx.ALIGN_RIGHT | wx.ST_NO_AUTORESIZE)
         font = wx.Font(wx.FontInfo(10))
         self.txtStatus.SetFont(font)
 
         panelSizer = wx.BoxSizer(wx.HORIZONTAL)
-        panelSizer.Add(self.txtStatus, wx.SizerFlags(1).Border(wx.ALL, 7))
+        panelSizer.Add(self.txtStatus, wx.SizerFlags(1).Align(wx.ALIGN_CENTER_VERTICAL).Border(wx.ALL, 7))
 
         panel.SetSizer(panelSizer)
         return panel
@@ -165,66 +174,6 @@ class MenuFrame(wx.Frame):
         self.menuItemSettings = self.settingsPopupMenu.Append(-1, 'Preferências...')
         self.settingsPopupMenu.AppendSeparator()
         self.menuItemExit = self.settingsPopupMenu.Append(wx.ID_EXIT, 'Sair')
-
-    def showSettingsPopupMenu(self):
-        self.btnSettings.PopupMenu(self.settingsPopupMenu)
-
-    def setUser(self, userOrg, userEmail):
-        self.txtOrg.SetLabel(userOrg)
-        self.txtEmail.SetLabel(userEmail)
-
-    def setStatus(self, status):
-        self.txtStatus.SetLabel(status)
-
-    def setSuccessfulCounter(self, count):
-        self.txtSuccess.SetLabel(str(count))
-        self.Layout()
-
-    def setSuccessfulCounterTooltip(self, tooltip):
-        self.txtSuccess.SetToolTip(tooltip)
-        self.stcBpmSuccess.SetToolTip(tooltip)
-
-    def setFailureCounter(self, count):
-        self.txtFailure.SetLabel(str(count))
-        self.Layout()
-
-    def setFailureCounterTooltip(self, tooltip):
-        self.txtFailure.SetToolTip(tooltip)
-        self.stcBpmFailure.SetToolTip(tooltip)
-
-    def setUnauthorized(self):
-        self.txtOrg.Hide()
-        self.txtEmail.Hide()
-        self.txtFailure.Hide()
-        self.txtSuccess.Hide()
-        self.stcBpmFailure.Hide()
-        self.stcBpmSuccess.Hide()
-        self.btnSignin.Show()
-        self.txtUnauthorized.Show()
-        self.Layout()
-
-    def setAuthorized(self):
-        self.txtOrg.Show()
-        self.txtEmail.Show()
-        self.txtFailure.Show()
-        self.txtSuccess.Show()
-        self.stcBpmFailure.Show()
-        self.stcBpmSuccess.Show()
-        self.btnSignin.Hide()
-        self.txtUnauthorized.Hide()
-        self.Layout()
-
-    def setOfflineIcons(self):
-        bpmSuccess = wx.Bitmap(str(icons.SUCCESS_GRAYSCALE), wx.BITMAP_TYPE_PNG)
-        self.stcBpmSuccess.SetBitmap(bpmSuccess)
-        bpmFailure = wx.Bitmap(str(icons.FAILURE_GRAYSCALE), wx.BITMAP_TYPE_PNG)
-        self.stcBpmFailure.SetBitmap(bpmFailure)
-
-    def setOnlineIcons(self):
-        bpmSuccess = wx.Bitmap(str(icons.SUCCESS), wx.BITMAP_TYPE_PNG)
-        self.stcBpmSuccess.SetBitmap(bpmSuccess)
-        bpmFailure = wx.Bitmap(str(icons.FAILURE), wx.BITMAP_TYPE_PNG)
-        self.stcBpmFailure.SetBitmap(bpmFailure)
 
     def destroy(self):
         wx.CallAfter(self._parent.Destroy)
@@ -256,76 +205,93 @@ class MenuPresenter:
         self.initView()
 
     def initView(self):
-        self._state = State.NORMAL
-        self.updateModel()
-
-    def show(self):
-        self._view.start()
+        self._state = State.UNINITIALIZED
+        self._userOrg = ''
+        self._userEmail = ''
+        self._cloudCounter = 0
+        self._blacklistedCounter = 0
+        self._loadViewFromModel()
 
     def updateState(self, state):
         self._state = state
         self.updateModel()
 
     def updateModel(self):
-        self._syncData = self._syncDataModel.getSyncData()
-        self._refreshStatus()
-        self._refreshCounters()
+        syncData = self._syncDataModel.getSyncData()
+        self._userOrg = syncData.userOrg
+        self._userEmail = syncData.userEmail
+        self._lastSync = syncData.lastSync
+        self._updateCounters()
         self._loadViewFromModel()
 
-    def _loadViewFromModel(self):
-        self._view.setUser(self._syncData.userOrg, self._syncData.userEmail)
-        self._view.setStatus(self._status)
-        self._view.setSuccessfulCounter(self._success)
-        self._view.setFailureCounter(self._failure)
-
-        if (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
-            self._view.setUnauthorized()
-        else:
-            self._view.setAuthorized()
-
-        if (self._state == State.NO_CONNECTION):
-            self._view.setOfflineIcons()
-        else:
-            self._view.setOnlineIcons()
-
-    def _refreshCounters(self):
+    def _updateCounters(self):
         if self._syncManager.isRunning():
-            self._success = self._syncManager.cloudFolder.getTotalFiles()
-            self._failure = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
+            self._cloudCounter = self._syncManager.cloudFolder.getTotalFiles()
+            self._blacklistedCounter = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
         else:
-            self._success = 0
-            self._failure = 0
+            self._cloudCounter = 0
+            self._blacklistedCounter = 0
+
+    def _loadViewFromModel(self):
+        self._view.txtOrg.SetLabel(self._userOrg)
+        self._view.txtEmail.SetLabel(self._userEmail)
+        self._view.txtCloudCounter.SetLabel(str(self._cloudCounter))
+        self._view.txtBlacklistedCounter.SetLabel(str(self._blacklistedCounter))
+        self._refreshStatus()
+        self._refreshVisibility()
+        self._refreshIcons()
+
+        self._view.Layout()
+        self._view.Refresh()
 
     def _refreshStatus(self):
-        if (self._state == State.NO_CONNECTION):
-            self.updateNoConnectionStatus()
-        elif (self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated()):
-            self.updateUnauthorizedStatus()
-        elif (self._state == State.SYNCING):
-            self.updateSyncingStatus()
-        elif (self._state == State.NORMAL):
-            self.updateNormalStatus()
+        if self._state == State.UNINITIALIZED:
+            self._view.txtStatus.SetLabel('Não inicializado')
+        if self._state == State.NO_CONNECTION:
+            self._view.txtStatus.SetLabel('Desconectado')
+        elif self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated():
+            self._view.txtStatus.SetLabel('Não autenticado')
+        elif self._state == State.SYNCING:
+            self._view.txtStatus.SetLabel('Sincronizando...')
+        elif self._state == State.NORMAL:
+            statusLabel = 'Atualizado'
+            if self._lastSync:
+                delta = datetime.now() - self._lastSync
+                statusLabel = f'{ statusLabel } { DeltaTime.format(delta) }'
+            self._view.txtStatus.SetLabel(statusLabel)
 
-    def updateSyncingStatus(self):
-        self._status = 'Sincronizando...'
+    def _refreshVisibility(self):
+        if self._state == State.UNAUTHORIZED or \
+                not self._authService.isAuthenticated() or \
+                self._state == State.UNINITIALIZED:
+            self._view.userSizer.ShowItems(False)
+            self._view.countersSizer.ShowItems(False)
+            self._view.btnSignin.Show()
+            self._view.txtUnauthorized.Show()
+        else:
+            self._view.userSizer.ShowItems(True)
+            self._view.countersSizer.ShowItems(True)
+            self._view.btnSignin.Hide()
+            self._view.txtUnauthorized.Hide()
 
-    def updateNormalStatus(self):
-        self._status = 'Atualizado'
-        if self._syncData.lastSync:
-            delta = datetime.now() - self._syncData.lastSync
-            self._status = self._status + ' ' + DeltaTime.format(delta)
+    def _refreshIcons(self):
+        bmpCloudCounter = wx.Bitmap(icons.SUCCESS.as_posix(), wx.BITMAP_TYPE_PNG)
+        bmpBlacklistedCounter = wx.Bitmap(icons.FAILURE.as_posix(), wx.BITMAP_TYPE_PNG)
 
-    def updateUnauthorizedStatus(self):
-        self._status = 'Não autenticado'
+        if self._state == State.NO_CONNECTION:
+            bmpCloudCounter = wx.Bitmap(icons.SUCCESS_GRAYSCALE.as_posix(), wx.BITMAP_TYPE_PNG)
+            bmpBlacklistedCounter = wx.Bitmap(icons.FAILURE_GRAYSCALE.as_posix(), wx.BITMAP_TYPE_PNG)
 
-    def updateNoConnectionStatus(self):
-        self._status = 'Desconectado'
+        self._view.bmpCloudCounter.SetBitmap(bmpCloudCounter)
+        self._view.bmpBlacklistedCounter.SetBitmap(bmpBlacklistedCounter)
 
     def openSyncFolder(self):
-        os.system('start {}'.format(self._syncData.nfsDir))
+        nfsDir = self._syncDataModel.getSyncData().nfsDir
+        if nfsDir:
+            os.system('start {}'.format(nfsDir))
 
     def showSettingsPopupMenu(self):
-        self._view.showSettingsPopupMenu()
+        self._view.btnSettings.PopupMenu(self._view.settingsPopupMenu)
 
     def showBlacklist(self):
         blacklist.show(self._view, self._syncManager.localFolder.blacklistedFolder)
@@ -346,6 +312,9 @@ class MenuPresenter:
             else:
                 self.updateModel()
 
+    def show(self):
+        self._view.start()
+
     def quit(self):
         self._menuHandler.onExit()
 
@@ -361,15 +330,15 @@ class MenuInteractor:
         self._view.btnFolder.Bind(wx.EVT_BUTTON, self.OnClickFolder)
         self._view.btnSettings.Bind(wx.EVT_BUTTON, self.OnClickSettingsPopupMenu)
         self._view.btnSignin.Bind(wx.EVT_BUTTON, self.OnClickSignin)
-        self._view.stcBpmFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
-        self._view.txtFailure.Bind(wx.EVT_LEFT_DOWN, self.OnClickFailureCounter)
+        self._view.bmpBlacklistedCounter.Bind(wx.EVT_LEFT_DOWN, self.OnClickBlacklisedCounter)
+        self._view.txtBlacklistedCounter.Bind(wx.EVT_LEFT_DOWN, self.OnClickBlacklisedCounter)
         self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnExit, self._view.menuItemExit)
         self._view.settingsPopupMenu.Bind(wx.EVT_MENU, self.OnConfig, self._view.menuItemSettings)
 
     def OnClickFolder(self, evt):
         self._presenter.openSyncFolder()
 
-    def OnClickFailureCounter(self, evt):
+    def OnClickBlacklisedCounter(self, evt):
         self._presenter.showBlacklist()
 
     def OnClickSettingsPopupMenu(self, evt):

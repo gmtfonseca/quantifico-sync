@@ -68,6 +68,8 @@ class MainPresenter:
     def _startSync(self):
         try:
             self._app.syncManager.startSync()
+            self._menu.updateState(State.NORMAL)
+            self._taskBarIcon.updateState(State.NORMAL)
         except Exception:
             self._view.showUnableToStartDialog()
             self.quit()

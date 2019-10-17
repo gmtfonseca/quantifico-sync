@@ -2,12 +2,12 @@ import wx
 from wx.adv import TaskBarIcon
 
 from quantisync.core.sync import State
-from ui.assets import icons, messages
+from ui.assets import icons
 
 
 def create(frame, taskBarIconHandler):
     icon = wx.Icon(str(icons.CLOUD))
-    return TaskBarPresenter(TaskBarIconView(frame, icon, 'QuantiSync\nAtualizado'),
+    return TaskBarPresenter(TaskBarIconView(frame, icon),
                             TaskBarInteractor(),
                             taskBarIconHandler)
 
@@ -19,9 +19,8 @@ class TaskBarIconHandler:
 
 
 class TaskBarIconView(TaskBarIcon):
-    def __init__(self, frame, icon, tooltip):
+    def __init__(self, frame, icon):
         TaskBarIcon.__init__(self)
-        self.setIcon(icon, tooltip)
 
     def setIcon(self, icon, tooltip):
         self.SetIcon(icon, tooltip)
@@ -35,26 +34,39 @@ class TaskBarPresenter:
         self._view = view
         interactor.Install(self, self._view)
         self._taskBarIconHandler = taskBarIconHandler
+        self.initView()
+
+    def initView(self):
+        self._state = State.UNINITIALIZED
+        self.loadViewFromModel()
+
+    def updateState(self, state):
+        self._state = state
+        self.loadViewFromModel()
+
+    def loadViewFromModel(self):
+        if self._state == State.UNINITIALIZED:
+            # TODO - Change uninitialized icon
+            icon = wx.Icon(icons.CLOUD.as_posix())
+            self._view.setIcon(icon, 'Quantifico\nNão inicializado')
+        if self._state == State.SYNCING:
+            icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
+            self._view.setIcon(icon, 'Quantifico\nSincronizando...')
+        elif self._state == State.NORMAL:
+            icon = wx.Icon(icons.CLOUD.as_posix())
+            self._view.setIcon(icon, 'Quantifico\nAtualizado')
+        elif self._state == State.NO_CONNECTION:
+            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
+            self._view.setIcon(icon, 'Quantifico\nNão conectado')
+        elif self._state == State.UNAUTHORIZED:
+            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
+            self._view.setIcon(icon, 'Quantifico\nErro ao se conectar com servidor')
 
     def handleSingleLeftClick(self):
         self._taskBarIconHandler.onSingleLeftClick()
 
     def handleSingleRightClick(self):
         self._taskBarIconHandler.onSingleRightClick()
-
-    def updateState(self, state):
-        if (state == State.SYNCING):
-            icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
-            self._view.setIcon(icon, 'QuantiSync\nSincronizando...')
-        elif (state == State.NORMAL):
-            icon = wx.Icon(icons.CLOUD.as_posix())
-            self._view.setIcon(icon, 'QuantiSync\nAtualizado')
-        elif (state == State.NO_CONNECTION):
-            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
-            self._view.setIcon(icon, messages.CONNECTION_FAILED)
-        elif (state == State.UNAUTHORIZED):
-            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
-            self._view.setIcon(icon, messages.UNAUTHORIZED_USER)
 
     def quit(self):
         self._view.destroy()
