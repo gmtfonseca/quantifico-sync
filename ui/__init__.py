@@ -4,7 +4,7 @@ from pathlib import Path
 import wx
 
 from ui import main
-from ui.app import App
+from quantisync.core.app import App
 
 
 APPDATA_PATH = Path(os.getenv('LOCALAPPDATA')) / 'Quantifico'
