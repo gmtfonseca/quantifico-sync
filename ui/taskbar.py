@@ -47,20 +47,17 @@ class TaskBarPresenter:
     def loadViewFromModel(self):
         if self._state == State.UNINITIALIZED:
             # TODO - Change uninitialized icon
-            icon = wx.Icon(icons.CLOUD.as_posix())
+            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self._view.setIcon(icon, 'Quantifico\nNão inicializado')
         if self._state == State.SYNCING:
             icon = wx.Icon(icons.CLOUD_SYNC.as_posix())
             self._view.setIcon(icon, 'Quantifico\nSincronizando...')
-        elif self._state == State.NORMAL:
+        elif self._state == State.IDLE:
             icon = wx.Icon(icons.CLOUD.as_posix())
             self._view.setIcon(icon, 'Quantifico\nAtualizado')
         elif self._state == State.NO_CONNECTION:
             icon = wx.Icon(icons.CLOUD_OFF.as_posix())
             self._view.setIcon(icon, 'Quantifico\nNão conectado')
-        elif self._state == State.UNAUTHORIZED:
-            icon = wx.Icon(icons.CLOUD_OFF.as_posix())
-            self._view.setIcon(icon, 'Quantifico\nNão autenticado')
 
     def handleSingleLeftClick(self):
         self._taskBarIconHandler.onSingleLeftClick()

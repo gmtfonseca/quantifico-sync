@@ -2,8 +2,6 @@ from enum import Enum
 
 import wx
 
-from quantisync.core.sync import State
-
 from ui.assets import icons, colors
 from ui.components import widgets
 
@@ -16,14 +14,13 @@ class Tab(Enum):
     ACCOUNT = 1
 
 
-def create(parent, syncDataModel, authService, syncManager, onAppStateChange):
+def create(parent, syncDataModel, authService, syncManager):
     icon = wx.Icon(icons.CLOUD.as_posix())
     return ConfigPresenter(ConfigFrame(parent, icon),
                            ConfigInteractor(),
                            syncDataModel,
                            authService,
-                           syncManager,
-                           onAppStateChange)
+                           syncManager)
 
 
 class ConfigFrame(wx.Frame):
@@ -208,7 +205,7 @@ class ConfigFrame(wx.Frame):
 
 class ConfigPresenter:
 
-    def __init__(self, view, interactor, syncDataModel, authService, syncManager, onAppStateChange):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager):
 
         self._view = view
         self._view.CenterOnScreen()
@@ -216,7 +213,6 @@ class ConfigPresenter:
         self._syncDataModel = syncDataModel
         self._authService = authService
         self._syncManager = syncManager
-        self._onAppStateChange = onAppStateChange
         self._initView()
 
     def _initView(self):
@@ -289,8 +285,7 @@ class ConfigPresenter:
 
     def _restartSync(self):
         try:
-            self._syncManager.restartSync()
-            self._onAppStateChange(State.NORMAL)
+            self._syncManager.restart()
         except Exception as err:
             print(err)
             raise err
@@ -303,12 +298,11 @@ class ConfigPresenter:
 
     def _unlinkAccount(self):
         try:
-            self._syncManager.stopSync()
+            self._syncManager.stop()
             self._authService.signout()
             self._syncDataModel.remove()
             self._syncManager.cloudFolder.clear()
             self._syncManager.localFolder.clearBlacklistedFolder()
-            self._onAppStateChange(State.UNAUTHORIZED)
         except Exception as err:
             print(err)
             raise err

@@ -15,11 +15,10 @@ class State(Enum):
     '''
     Representa o estado de um objeto Sync (Thread)
     '''
-    NORMAL = 0
+    IDLE = 0
     SYNCING = 1
     NO_CONNECTION = 2
-    UNAUTHORIZED = 3
-    UNINITIALIZED = 4
+    UNINITIALIZED = 3
 
 
 class UninitializedSync(Exception):
@@ -39,20 +38,34 @@ class SyncManager(object):
         self._syncFactory = syncFactory
         self._sync = None
 
-    def startSync(self):
+    def start(self):
         self._sync = self._syncFactory()
         self._sync.start()
 
-    def restartSync(self):
-        self.stopSync()
-        self.startSync()
+    def restart(self):
+        self._stop(postEvent=False)
+        self.start()
 
-    def stopSync(self):
+    def stop(self):
+        self._stop(postEvent=True)
+
+    def _stop(self, postEvent):
+        '''
+        O post event é usado para determinar se é necessário avisar a View que a thread foi abortada.
+        No caso de reinicialização, a View não precisa responder a este evento.
+        '''
         if self._sync:
-            self._sync.abort()
+            self._sync.abort(postEvent)
 
     def isRunning(self):
         return self._sync and self._sync.is_alive()
+
+    @property
+    def state(self):
+        if not self._sync:
+            raise UninitializedSync()
+
+        return self._sync.state
 
     @property
     def localFolder(self):
@@ -82,6 +95,7 @@ class Sync(Thread):
         self._handler = handler
         self._delay = delay
         self._abort = False
+        self._state = State.UNINITIALIZED
 
     def run(self):
         while True:
@@ -91,8 +105,15 @@ class Sync(Thread):
             self._observeChanges()
             time.sleep(self._delay)
 
-    def abort(self):
+    def start(self):
+        self._setStateAndPostEvent(State.IDLE)
+        super().start()
+
+    def abort(self, postEvent):
         self._abort = True
+        self._state = State.UNINITIALIZED
+        if postEvent:
+            self._postSyncEvent()
 
     def _observeChanges(self):
         self._observer.observe()
@@ -101,16 +122,16 @@ class Sync(Thread):
 
     def _handleChanges(self):
         try:
-            self._postSyncEvent(State.SYNCING)
+            self._setStateAndPostEvent(State.SYNCING)
             self._handleSync()
-            self._postSyncEvent(State.NORMAL)
+            self._setStateAndPostEvent(State.IDLE)
         except (NewConnectionError, ConnectionError):
             self.abort()
-            self._postSyncEvent(State.NO_CONNECTION, True)
+            self._setStateAndPostEvent(State.NO_CONNECTION)
         except HTTPError as error:
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
                 self.abort()
-                self._postSyncEvent(State.UNAUTHORIZED, True)
+                self._setStateAndPostEvent(State.UNINITIALIZED)
 
     def _handleSync(self):
         if self._observer.hasDeletions():
@@ -137,8 +158,12 @@ class Sync(Thread):
         logging.debug('Ghost files')
         self._observer.localFolder.removeBlacklistedGhostFiles()
 
-    def _postSyncEvent(self, state, isFatal=False):
-        evt = SyncEvent(myEVT_SYNC, -1, state, isFatal)
+    def _setStateAndPostEvent(self, state):
+        self._state = state
+        self._postSyncEvent()
+
+    def _postSyncEvent(self):
+        evt = SyncEvent(myEVT_SYNC, -1, self._state)
         wx.PostEvent(self._view, evt)
 
     @property
@@ -148,3 +173,7 @@ class Sync(Thread):
     @property
     def cloudFolder(self):
         return self._observer.cloudFolder
+
+    @property
+    def state(self):
+        return self._state

@@ -245,15 +245,13 @@ class MenuPresenter:
         self._view.Refresh()
 
     def _refreshStatus(self):
-        if self._state == State.UNINITIALIZED:
+        if self._state == State.UNINITIALIZED or not self._authService.isAuthenticated():
             self._view.txtStatus.SetLabel('Não inicializado')
         if self._state == State.NO_CONNECTION:
             self._view.txtStatus.SetLabel('Desconectado')
-        elif self._state == State.UNAUTHORIZED or not self._authService.isAuthenticated():
-            self._view.txtStatus.SetLabel('Não autenticado')
         elif self._state == State.SYNCING:
             self._view.txtStatus.SetLabel('Sincronizando...')
-        elif self._state == State.NORMAL:
+        elif self._state == State.IDLE:
             statusLabel = 'Atualizado'
             if self._lastSync:
                 delta = datetime.now() - self._lastSync
@@ -261,9 +259,7 @@ class MenuPresenter:
             self._view.txtStatus.SetLabel(statusLabel)
 
     def _refreshVisibility(self):
-        if self._state == State.UNAUTHORIZED or \
-                not self._authService.isAuthenticated() or \
-                self._state == State.UNINITIALIZED:
+        if self._state == State.UNINITIALIZED or not self._authService.isAuthenticated():
             self._view.userSizer.ShowItems(False)
             self._view.countersSizer.ShowItems(False)
             self._view.btnSignin.Show()

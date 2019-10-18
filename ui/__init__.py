@@ -20,7 +20,7 @@ config = {
 
     },
     'network': {
-        'HTTP_URL': 'http://localhost:3000/',
+        'HTTP_URL': 'http://localhost:4000/',
         'MAX_BATCH_SIZE': {
             'STREAM': 40,
             'DELETE': 100
@@ -35,6 +35,8 @@ config = {
 
 def run():
     wxApp = wx.App()
+
     app = App(config)
     main.start(app)
+
     wxApp.MainLoop()

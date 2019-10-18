@@ -3,21 +3,19 @@ from threading import Thread
 import wx
 
 from quantisync.core.auth import EmptyUser, InvalidUser
-from quantisync.core.sync import State
 
 from ui.assets import icons, images, colors
 from ui.components import widgets
 
 
-def create(parent, syncDataModel, authService, syncManager, cloudFolder, onAppStateChange):
+def create(parent, syncDataModel, authService, syncManager, cloudFolder):
     icon = wx.Icon(str(icons.CLOUD))
     return WizardPresenter(WizardFrame(parent, icon),
                            WizardInteractor(),
                            syncDataModel,
                            authService,
                            syncManager,
-                           cloudFolder,
-                           onAppStateChange)
+                           cloudFolder)
 
 
 class WizardFrame(wx.Frame):
@@ -246,13 +244,13 @@ class WizardFrame(wx.Frame):
         self.Raise()
         self.Show()
 
-    def quit(self):
+    def destroy(self):
         self.Destroy()
 
 
 class WizardPresenter:
 
-    def __init__(self, view, interactor, syncDataModel, authService, syncManager, cloudFolder, onAppStateChange):
+    def __init__(self, view, interactor, syncDataModel, authService, syncManager, cloudFolder):
 
         self._view = view
         self._view.CenterOnScreen()
@@ -262,7 +260,6 @@ class WizardPresenter:
         self._authService = authService
         self._syncManager = syncManager
         self._cloudFolder = cloudFolder
-        self._onAppStateChange = onAppStateChange
         self._authThread = None
 
     def _initView(self):
@@ -330,12 +327,11 @@ class WizardPresenter:
         self.updateModel()
         self._syncDataModel.setNfsDir(self._nfsDirPath)
         self._startSync()
-        self._view.quit()
+        self.quit()
 
     def _startSync(self):
         try:
-            self._syncManager.startSync()
-            self._onAppStateChange(State.NORMAL)
+            self._syncManager.start()
         except Exception as err:
             print(err)
             pass

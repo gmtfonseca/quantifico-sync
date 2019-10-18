@@ -62,14 +62,14 @@ class MainPresenter:
         if appIsReady:
             self._startSync()
         else:
-            self.updateChildrenState(State.UNAUTHORIZED)
+            self.updateChildrenState(State.UNINITIALIZED)
             self.showWizard()
 
     def _startSync(self):
         try:
-            self._app.syncManager.startSync()
-            self.updateChildrenState(State.NORMAL)
-        except Exception:
+            self._app.syncManager.start()
+        except Exception as err:
+            print(err)
             self._view.showUnableToStartDialog()
             self.quit()
 
@@ -80,7 +80,7 @@ class MainPresenter:
     def handleSyncStateUpdate(self, syncState):
         self.updateChildrenState(syncState)
 
-        if syncState == State.UNAUTHORIZED:
+        if syncState == State.UNINITIALIZED:
             self.showWizard()
 
     def showWizard(self):
@@ -88,16 +88,14 @@ class MainPresenter:
                                self._app.syncDataModel,
                                self._app.authService,
                                self._app.syncManager,
-                               self._app.cloudFolder,
-                               self.handleSyncStateUpdate)
+                               self._app.cloudFolder)
         self._setActiveWindowAndShow(window)
 
     def showConfig(self):
         window = config.create(self._view,
                                self._app.syncDataModel,
                                self._app.authService,
-                               self._app.syncManager,
-                               self.handleSyncStateUpdate)
+                               self._app.syncManager)
         self._setActiveWindowAndShow(window)
 
     def _setActiveWindowAndShow(self, window):
