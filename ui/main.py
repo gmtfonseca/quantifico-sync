@@ -128,4 +128,4 @@ class MainInteractor:
         self._view.Bind(EVT_SYNC, self.OnUpdateSyncState)
 
     def OnUpdateSyncState(self, evt):
-        self._presenter.handleSyncStateUpdate(evt.getState())
+        self._presenter.handleSyncStateUpdate(evt.state)

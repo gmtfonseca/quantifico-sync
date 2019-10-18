@@ -9,5 +9,6 @@ class SyncEvent(wx.PyCommandEvent):
         wx.PyCommandEvent.__init__(self, type, id)
         self._state = state
 
-    def getState(self):
+    @property
+    def state(self):
         return self._state

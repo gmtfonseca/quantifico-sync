@@ -5,7 +5,7 @@ from ui.assets import icons
 
 def show(parent, blacklistedFolder):
     icon = wx.Icon(str(icons.CLOUD))
-    return BlacklistPresenter(BlacklistDialog(parent, 'QuantiSync', icon=icon),
+    return BlacklistPresenter(BlacklistDialog(parent, 'Quantifico', icon=icon),
                               BlacklistInteractor(),
                               blacklistedFolder)
 
