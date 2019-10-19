@@ -96,10 +96,10 @@ class WizardFrame(wx.Frame):
         bmpBackground = wx.StaticBitmap(panel, -1, pngBackground,
                                         size=(pngBackground.GetWidth(), pngBackground.GetHeight()))
 
-        self.txtEmail = wx.TextCtrl(panel, size=(250, 25))
+        self.txtEmail = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, size=(250, 25))
         self.txtEmail.SetHint('Insira o seu endereço de email')
 
-        self.txtPassword = wx.TextCtrl(panel, style=wx.TE_PASSWORD, size=(250, 25))
+        self.txtPassword = wx.TextCtrl(panel, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER, size=(250, 25))
         self.txtPassword.SetHint('Insira a sua senha')
 
         self.txtStatus = wx.StaticText(
@@ -153,7 +153,12 @@ class WizardFrame(wx.Frame):
 
         self.nfsDir = wx.GenericDirCtrl(panel, -1, size=(-1, 380), style=wx.DIRCTRL_DIR_ONLY)
 
-        self.btnConfirmNfsDir = widgets.PrimaryButton(panel,  'Confirmar')
+        self.btnCancel = widgets.SecondaryButton(panel,  'CANCELAR')
+        self.btnConfirmNfsDir = widgets.PrimaryButton(panel,  'OK')
+
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.Add(self.btnCancel, wx.SizerFlags(0).Border(wx.RIGHT, 10))
+        btnSizer.Add(self.btnConfirmNfsDir)
 
         nfsPathSizer = wx.BoxSizer(wx.HORIZONTAL)
         nfsPathSizer.Add(lblNfsDir, wx.SizerFlags(0))
@@ -165,73 +170,11 @@ class WizardFrame(wx.Frame):
         mainSizer.Add(title, wx.SizerFlags(0).Border(wx.TOP | wx.LEFT, 25))
         mainSizer.Add(nfsPathSizer, wx.SizerFlags(0).Expand().Border(wx.TOP | wx.LEFT, 25))
         mainSizer.Add(nfsDirSizer, wx.SizerFlags(0).Expand().Border(wx.LEFT | wx.RIGHT, 25))
-        mainSizer.Add(self.btnConfirmNfsDir, wx.SizerFlags(0).Right().Border(wx.ALL, 25))
+        mainSizer.Add(btnSizer, wx.SizerFlags(0).Right().Border(wx.ALL, 25))
 
         panel.SetSizer(mainSizer)
 
         return panel
-
-    def showFirstStepPanel(self):
-        self.firstStepPanel.Show()
-
-    def showSecondStepPanel(self):
-        self.secondStepPanel.Show()
-
-    def hideFirstStepPanel(self):
-        self.firstStepPanel.Hide()
-
-    def hideSecondStepPanel(self):
-        self.secondStepPanel.Hide()
-
-    def setStatusLabel(self, label):
-        self.txtStatus.SetLabel(label)
-
-    def showStatusLabel(self):
-        self.txtStatus.Show()
-
-    def hideStatusLabel(self):
-        self.txtStatus.Hide()
-
-    def showLoading(self):
-        self.ctrlLoading.Show()
-        self.ctrlLoading.Play()
-
-    def hideLoading(self):
-        self.ctrlLoading.Hide()
-
-    def hideBtnSignin(self):
-        self.btnSignin.Hide()
-
-    def showBtnSignin(self):
-        self.btnSignin.Show()
-
-    def setFirstStepBmp(self, bmp):
-        self.bmpFirstStep.SetBitmap(bmp)
-
-    def setSecondStepBmp(self, bmp):
-        self.bmpSecondStep.SetBitmap(bmp)
-
-    def setEmail(self, email):
-        self.txtEmail.SetLabel(email)
-
-    def getEmail(self):
-        return self.txtEmail.GetValue()
-
-    def setPassword(self, password):
-        self.txtPassword.SetLabel(password)
-
-    def getPassword(self):
-        return self.txtPassword.GetValue()
-
-    def setTitleStep(self, step):
-        self.SetTitle('Bem-vindo ao Quantifico (Etapa {} de 2)'.format(str(step)))
-
-    def setNfsDirPath(self, path):
-        self.txtNfsDir.SetLabel(path)
-        self.Layout()
-
-    def getNfsDirPath(self):
-        return self.nfsDir.GetPath()
 
     def showExistingSnapshotDialog(self):
         dlg = wx.MessageDialog(self, 'Esta conta já possui notas vinculadas, deseja continuar?',
@@ -268,14 +211,20 @@ class WizardPresenter:
         self._password = ''
         self._statusLabel = ''
         self._nfsDirPath = ''
-        self._loadCurrStep()
         self._loadViewFromModel()
+        self._setInitialFocus()
 
     def _loadViewFromModel(self):
-        self._view.setEmail(self._email)
-        self._view.setPassword(self._password)
-        self._view.setNfsDirPath(self._nfsDirPath)
-        self._view.setStatusLabel(self._statusLabel)
+        self._view.txtEmail.SetLabel(self._email)
+        self._view.txtPassword.SetLabel(self._password)
+        self._view.txtNfsDir.SetLabel(self._nfsDirPath)
+        self._view.txtStatus.SetLabel(self._statusLabel)
+        self._loadCurrStep()
+        self._view.Layout()
+        self._view.Refresh()
+
+    def _setInitialFocus(self):
+        self._view.txtEmail.SetFocus()
 
     def _loadCurrStep(self):
         if self._currStep == 1:
@@ -284,43 +233,43 @@ class WizardPresenter:
             self._loadSecondStep()
 
     def _loadFirstStep(self):
-        self._view.setTitleStep(1)
-
+        self._setTitleStep(1)
         bmpFirstStepFocused = wx.Image(str(icons.ONE_FOCUSED), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self._view.setFirstStepBmp(bmpFirstStepFocused)
+        self._view.bmpFirstStep.SetBitmap(bmpFirstStepFocused)
 
         bmpSecondStep = wx.Image(str(icons.TWO), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self._view.setSecondStepBmp(bmpSecondStep)
+        self._view.bmpSecondStep.SetBitmap(bmpSecondStep)
 
-        self._view.hideSecondStepPanel()
-        self._view.showFirstStepPanel()
-        self._view.Layout()
+        self._view.secondStepPanel.Hide()
+        self._view.firstStepPanel.Show()
 
     def _loadSecondStep(self):
-        self._view.setTitleStep(2)
+        self._setTitleStep(2)
 
         bmpFirstStep = wx.Image(str(icons.ONE), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self._view.setFirstStepBmp(bmpFirstStep)
+        self._view.bmpFirstStep.SetBitmap(bmpFirstStep)
 
         bmpSecondStepFocused = wx.Image(str(icons.TWO_FOCUSED), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        self._view.setSecondStepBmp(bmpSecondStepFocused)
+        self._view.bmpSecondStep.SetBitmap(bmpSecondStepFocused)
 
-        self._view.hideFirstStepPanel()
-        self._view.showSecondStepPanel()
-        self._view.Layout()
+        self._view.firstStepPanel.Hide()
+        self._view.secondStepPanel.Show()
+
+    def _setTitleStep(self, step):
+        self._view.SetTitle('Bem-vindo ao Quantifico (Etapa {} de 2)'.format(str(self._currStep)))
 
     def _nextStep(self):
         self._currStep += 1
-        self._loadCurrStep()
+        self._loadViewFromModel()
 
     def setStatusLabel(self, label):
         self._statusLabel = label
         self._loadViewFromModel()
 
     def updateModel(self):
-        self._email = self._view.getEmail()
-        self._password = self._view.getPassword()
-        self._nfsDirPath = self._view.getNfsDirPath()
+        self._email = self._view.txtEmail.GetValue()
+        self._password = self._view.txtPassword.GetValue()
+        self._nfsDirPath = self._view.nfsDir.GetPath()
         self._loadViewFromModel()
 
     def confirmNfsDir(self):
@@ -343,16 +292,18 @@ class WizardPresenter:
             self._authThread.start()
 
     def enableLoading(self):
-        self._view.hideStatusLabel()
-        self._view.hideBtnSignin()
-        self._view.showLoading()
+        self._view.txtStatus.Hide()
+        self._view.btnSignin.Hide()
+        self._view.ctrlLoading.Show()
+        self._view.ctrlLoading.Play()
         self._view.Layout()
         self._view.Refresh()
 
     def disableLoading(self):
-        self._view.showStatusLabel()
-        self._view.showBtnSignin()
-        self._view.hideLoading()
+        self._view.txtStatus.Show()
+        self._view.btnSignin.Show()
+        self._view.ctrlLoading.Stop()
+        self._view.ctrlLoading.Hide()
         self._view.Layout()
         self._view.Refresh()
 
@@ -402,6 +353,8 @@ class WizardInteractor:
         self._view = view
 
         self._view.btnSignin.Bind(wx.EVT_BUTTON, self.OnSignin)
+        self._view.txtEmail.Bind(wx.EVT_TEXT_ENTER, self.OnPressEnter)
+        self._view.txtPassword.Bind(wx.EVT_TEXT_ENTER, self.OnPressEnter)
         self._view.btnConfirmNfsDir.Bind(wx.EVT_BUTTON, self.OnConfirmNfsDir)
         self._view.nfsDir.Bind(wx.EVT_DIRCTRL_SELECTIONCHANGED, self.OnNfsDirChange)
 
@@ -413,3 +366,6 @@ class WizardInteractor:
 
     def OnConfirmNfsDir(self, evt):
         self._presenter.confirmNfsDir()
+
+    def OnPressEnter(self, event):
+        self._presenter.signin()
