@@ -314,10 +314,17 @@ class ConfigPresenter:
             self._switchTab(Tab.ACCOUNT)
 
     def confirmChanges(self, evt):
+        try:
+            self._serializeChanges()
+            self._restartSync()
+            self.quit()
+        except Exception as err:
+            print(err)
+            pass
+
+    def serializeChanges(self):
         self.updateModel()
         self._syncDataModel.setNfsDir(self._nfsDir)
-        self._restartSync()
-        self.quit()
 
     def isActive(self):
         return bool(self._view)

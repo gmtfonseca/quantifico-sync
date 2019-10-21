@@ -5,6 +5,16 @@ from datetime import datetime
 from quantisync.lib.util import Date
 
 
+class UnableToSaveError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class UnableToLoadError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class SyncData:
     def __init__(self, nfsDir, userEmail, userOrg, lastSync):
         self.nfsDir = nfsDir
@@ -47,21 +57,27 @@ class SyncDataModel:
         return self._syncData
 
     def load(self):
-        if not self._jsonPath.exists():
-            return SyncData.empty()
+        try:
+            if not self._jsonPath.exists():
+                return SyncData.empty()
 
-        with self._jsonPath.open() as f:
-            syncData = SyncData.fromJsonFile(f)
-            if syncData.lastSync:
-                syncData.lastSync = Date.parseString(syncData.lastSync)
-            return syncData
+            with self._jsonPath.open() as f:
+                syncData = SyncData.fromJsonFile(f)
+                if syncData.lastSync:
+                    syncData.lastSync = Date.parseString(syncData.lastSync)
+                return syncData
+        except Exception as err:
+            raise UnableToLoadError(err)
 
     def save(self):
-        if not self._jsonPath.parent.exists():
-            self._jsonPath.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            if not self._jsonPath.parent.exists():
+                self._jsonPath.parent.mkdir(parents=True, exist_ok=True)
 
-        with self._jsonPath.open('w') as f:
-            json.dump(self._syncData.toDict(), f, default=self._serializer)
+            with self._jsonPath.open('w') as f:
+                json.dump(self._syncData.toDict(), f, default=self._serializer)
+        except Exception as err:
+            raise UnableToSaveError(err)
 
     def remove(self):
         if self._jsonPath.exists():
