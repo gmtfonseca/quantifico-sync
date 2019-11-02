@@ -3,6 +3,7 @@ from functools import partial
 from quantisync.lib.network import HttpService
 from quantisync.core.auth import KeyringTokenStorage, AuthService
 from quantisync.core.model import SyncDataModel
+from quantisync.core.logger import LoggerFactory
 from quantisync.core.snapshot import LocalFolder, BlacklistedFolder, CloudFolder, Observer
 from quantisync.core.nf.nf_handler import NfHandler, NfInsertionStrategy, NfDeletionStrategy
 from quantisync.core.sync import Sync, SyncManager, UninitializedSync, InvalidSyncSettings
@@ -19,8 +20,17 @@ class App:
                                         syncDataModel=self.syncDataModel)
         self._cloudFolder = CloudFolder(self._config['storage']['CLOUD_SNAPSHOT_PATH'],
                                         self.httpService(endpoint='nfs/snapshot'))
-
+        self._logger = self._getLogger()
         self._syncManager = None
+
+    def _getLogger(self):
+        env = self._config['env']
+        logger = LoggerFactory.getRootLogger()
+        if env == 'dev':
+            logger = LoggerFactory.getDevLogger()
+        elif env == 'prod':
+            logger = LoggerFactory.getProdLogger(self._config['storage']['LOG_PATH'])
+        return logger
 
     def httpService(self, endpoint):
         return HttpService(endpoint,
@@ -58,7 +68,8 @@ class App:
         sync = Sync(view=view,
                     observer=observer,
                     handler=nfsHandler,
-                    delay=self._config['sync']['DELAY'])
+                    delay=self._config['sync']['DELAY'],
+                    logger=self._logger)
 
         return sync
 
@@ -84,3 +95,7 @@ class App:
             raise UninitializedSync()
 
         return self._syncManager
+
+    @property
+    def logger(self):
+        return self._logger

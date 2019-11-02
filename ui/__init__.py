@@ -13,14 +13,15 @@ config = {
     'storage': {
         'SYNC_DATA_PATH': APPDATA_PATH / 'sync_data.json',
         'CLOUD_SNAPSHOT_PATH': APPDATA_PATH / 'cloud.dat',
-        'BLACKLISTED_SNAPSHOT_PATH': APPDATA_PATH / 'blacklisted.dat'
+        'BLACKLISTED_SNAPSHOT_PATH': APPDATA_PATH / 'blacklisted.dat',
+        'LOG_PATH': APPDATA_PATH / 'sync_log.txt'
     },
     'auth': {
         'SERVICE_NAME': 'quantisync',
 
     },
     'network': {
-        'HTTP_URL': 'http://localhost:3000/',
+        'HTTP_URL': 'http://localhost:4000/',
         'MAX_BATCH_SIZE': {
             'STREAM': 40,
             'DELETE': 100
@@ -29,7 +30,8 @@ config = {
     'sync': {
         'NF_EXTENSION': 'XML',
         'DELAY': 2,
-    }
+    },
+    'env': 'dev'
 }
 
 

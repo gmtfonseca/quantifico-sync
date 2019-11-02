@@ -283,13 +283,6 @@ class ConfigPresenter:
         self._nfsDir = self._view.nfsDir.GetPath()
         self._loadViewFromModel()
 
-    def _restartSync(self):
-        try:
-            self._syncManager.restart()
-        except Exception as err:
-            print(err)
-            raise err
-
     def confirmUnlinkAccount(self):
         confirm = self._view.showUnlinkAccountDialog()
         if confirm:
@@ -316,13 +309,13 @@ class ConfigPresenter:
     def confirmChanges(self, evt):
         try:
             self._serializeChanges()
-            self._restartSync()
+            self._syncManager.restart()
             self.quit()
         except Exception as err:
             print(err)
-            pass
+            raise err
 
-    def serializeChanges(self):
+    def _serializeChanges(self):
         self.updateModel()
         self._syncDataModel.setNfsDir(self._nfsDir)
 

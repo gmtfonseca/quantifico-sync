@@ -1,6 +1,5 @@
 import wx
 import time
-import logging
 from threading import Thread
 from enum import Enum
 from http import HTTPStatus
@@ -87,13 +86,14 @@ class Sync(Thread):
     Thread responsável por realizar sincronização de arquivos
     '''
 
-    def __init__(self, view, observer, handler, delay):
+    def __init__(self, view, observer, handler, delay, logger):
         super().__init__()
         super().setDaemon(True)
         self._view = view
         self._observer = observer
         self._handler = handler
         self._delay = delay
+        self._logger = logger
         self._abort = False
         self._state = State.UNINITIALIZED
 
@@ -125,12 +125,14 @@ class Sync(Thread):
             self._setStateAndPostEvent(State.SYNCING)
             self._handleSync()
             self._setStateAndPostEvent(State.IDLE)
-        except (NewConnectionError, ConnectionError):
-            self.abort()
+        except (NewConnectionError, ConnectionError) as error:
+            self._logger.exception(error)
+            self.abort(False)
             self._setStateAndPostEvent(State.NO_CONNECTION)
         except HTTPError as error:
+            self._logger.exception(error)
             if error.response.status_code == HTTPStatus.UNAUTHORIZED:
-                self.abort()
+                self.abort(False)
                 self._setStateAndPostEvent(State.UNINITIALIZED)
 
     def _handleSync(self):
@@ -142,11 +144,11 @@ class Sync(Thread):
             self._handleBlacklistedGhostFiles()
 
     def _handleInsertions(self):
-        logging.debug('Inserindo')
+        self._logger.debug('Inserindo')
         self._handler.onInsert(self._observer.insertions)
 
     def _handleDeletions(self):
-        logging.debug('Removendo')
+        self._logger.debug('Removendo')
         self._handler.onDelete(self._observer.deletions)
 
     def _handleBlacklistedGhostFiles(self):
@@ -155,7 +157,7 @@ class Sync(Thread):
         Este cenário acontece quando arquivos que não foram importados por alguma
         razão foram removidos pelo usuário
         '''
-        logging.debug('Ghost files')
+        self._logger.debug('Ghost Files')
         self._observer.localFolder.removeBlacklistedGhostFiles()
 
     def _setStateAndPostEvent(self, state):

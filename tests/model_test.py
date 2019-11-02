@@ -1,10 +1,9 @@
 import unittest
-from unittest import mock
 from datetime import datetime
 # from unittest.mock import Mock
 
 from quantisync.lib.util import File
-from quantisync.core.model import SyncDataModel, UnableToSaveError
+from quantisync.core.model import SyncDataModel
 from tests.config import FIXTURE_PATH
 
 
@@ -67,14 +66,6 @@ class SyncDataModelTest(unittest.TestCase):
         syncDataModel.setLastSync(lastSync)
         syncDataModel.remove()
         self.assertFalse(File(syncDataModel.jsonPath).exists())
-
-    @mock.patch('quantisync.core.model.json.dump')
-    def test_save_throws_exception(self, jsonDump):
-        jsonDump.side_effect = Exception()
-        nfsDir = 'C:/'
-        with self.assertRaises(UnableToSaveError):
-            syncDataModel = SyncDataModel(SYNC_DATA_PATH)
-            syncDataModel.setNfsDir(nfsDir)
 
 
 if __name__ == '__main__':

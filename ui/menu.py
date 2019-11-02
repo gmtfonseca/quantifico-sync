@@ -172,8 +172,9 @@ class MenuFrame(wx.Frame):
     def _createSettingsPopupMenu(self):
         self.settingsPopupMenu = wx.Menu()
         self.menuItemSettings = self.settingsPopupMenu.Append(-1, 'Preferências...')
+        self.menuItemAddAccount = self.settingsPopupMenu.Append(-1, 'Adicionar nova conta')
         self.settingsPopupMenu.AppendSeparator()
-        self.menuItemExit = self.settingsPopupMenu.Append(wx.ID_EXIT, 'Sair')
+        self.menuItemExit = self.settingsPopupMenu.Append(wx.ID_EXIT, 'Fechar')
 
     def destroy(self):
         wx.CallAfter(self._parent.Destroy)
@@ -228,9 +229,6 @@ class MenuPresenter:
         if self._syncManager.isRunning():
             self._cloudCounter = self._syncManager.cloudFolder.getTotalFiles()
             self._blacklistedCounter = self._syncManager.localFolder.blacklistedFolder.getTotalFiles()
-        else:
-            self._cloudCounter = 0
-            self._blacklistedCounter = 0
 
     def _loadViewFromModel(self):
         self._view.txtOrg.SetLabel(self._userOrg)

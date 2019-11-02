@@ -22,7 +22,7 @@ class MainFrame(wx.Frame):
 
     def showUnableToStartDialog(self):
         dlg = wx.MessageDialog(self, 'Ocorreu um erro ao inicializar a aplicação.',
-                               'QuantiSync',
+                               'Quantifico',
                                wx.OK | wx.ICON_INFORMATION
                                )
         dlg.ShowModal()
